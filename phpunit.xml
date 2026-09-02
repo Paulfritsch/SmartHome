@@ -4,13 +4,8 @@
          bootstrap="vendor/autoload.php"
          colors="true">
     <testsuites>
-        <testsuite name="SmartSave Test Suite">
+        <testsuite name="SmartSave">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-    <source>
-        <include>
-            <directory>prototype/src</directory>
-        </include>
-    </source>
 </phpunit>
