@@ -2,7 +2,7 @@
 
 ## SmartSave – Smart Living Projekt (LF10)
 
-Berufsschulprojekt (Anwendungsentwickler, 2. Lehrjahr): eine Smart-Home-Lösung im Abo-Modell,
+Berufsschulprojekt (Anwendungsentwickler, 3. Lehrjahr): eine Smart-Home-Lösung im Abo-Modell,
 die sich durch die eingesparten Energiekosten selbst finanziert (Bezug zu SDG 12).
 
 ### Dokumentation
