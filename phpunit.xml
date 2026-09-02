@@ -8,4 +8,10 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+
+    <source>
+        <include>
+            <directory>prototype/src</directory>
+        </include>
+    </source>
 </phpunit>
