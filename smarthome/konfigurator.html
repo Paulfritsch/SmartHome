@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paket-Konfigurator – Nest & Now</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+  :root{
+    --bg:#F2F4EF; --ink:#16211D; --ink-soft:#4B564F;
+    --forest:#2F6B5E; --forest-dim:#DCE8E3; --amber:#C98A3E;
+    --line:#D6D9CF; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
+  a{color:inherit;}
+  .wrap{max-width:1000px; margin:0 auto; padding:0 32px;}
+  nav.wrap{display:flex; align-items:center; justify-content:space-between; padding:28px 32px;}
+  .logo{font-family:'Fraunces',serif; font-size:1.2rem; font-weight:600;}
+  .logo a{text-decoration:none;}
+
+  h1{font-family:'Fraunces',serif; font-weight:500; font-size:2rem; margin:32px 0 8px;}
+  .subtitle{color:var(--ink-soft); margin-bottom:32px;}
+
+  .presets{display:flex; gap:12px; margin-bottom:32px;}
+  .preset-btn{
+    background:var(--card); border:1px solid var(--line); padding:10px 18px;
+    border-radius:3px; font-size:0.9rem; font-weight:500; cursor:pointer;
+  }
+  .preset-btn:hover{border-color:var(--forest);}
+
+  .layout{display:grid; grid-template-columns:1.3fr 1fr; gap:32px; padding-bottom:80px;}
+
+  .komponente{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--card); border:1px solid var(--line); border-radius:5px;
+    padding:16px 20px; margin-bottom:12px;
+  }
+  .komponente .info .name{font-weight:600; font-size:0.98rem;}
+  .komponente .info .beschreibung{font-size:0.85rem; color:var(--ink-soft); margin-top:2px;}
+  .komponente .preis-info{display:flex; align-items:center; gap:16px;}
+  .komponente .preis{font-size:0.92rem; color:var(--ink-soft);}
+  .add-btn{
+    background:var(--ink); color:#fff; border:none; padding:8px 14px;
+    border-radius:3px; cursor:pointer; font-size:0.85rem; font-weight:500;
+  }
+
+  .mein-paket{
+    background:var(--card); border:1px solid var(--line); border-radius:6px;
+    padding:24px; align-self:start; position:sticky; top:24px;
+  }
+  .mein-paket h2{font-family:'Fraunces',serif; font-weight:500; font-size:1.2rem; margin-bottom:16px;}
+  #ausgewaehlte-liste{list-style:none; margin-bottom:16px; min-height:24px;}
+  #ausgewaehlte-liste li{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:0.9rem; padding:8px 0; border-bottom:1px solid var(--line);
+  }
+  #ausgewaehlte-liste .remove-btn{
+    background:none; border:none; color:var(--ink-soft); cursor:pointer; font-size:0.85rem;
+  }
+  .leer-hinweis{color:var(--ink-soft); font-size:0.88rem;}
+
+  .summe-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding-top:12px; margin-top:4px; border-top:1px solid var(--line);
+  }
+  .summe-row .label{font-size:0.92rem; color:var(--ink-soft);}
+  .summe-row .betrag{font-size:1.5rem; font-weight:600;}
+  .summe-row .betrag span{font-size:0.85rem; font-weight:400; color:var(--ink-soft);}
+
+  .weiter-btn{
+    display:block; width:100%; margin-top:20px; padding:14px; text-align:center;
+    background:var(--forest); color:#fff; border:none; border-radius:3px;
+    font-weight:500; font-size:0.96rem; cursor:pointer;
+  }
+  .weiter-btn:disabled{background:var(--line); color:var(--ink-soft); cursor:not-allowed;}
+
+  @media (max-width:760px){ .layout{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<nav class="wrap">
+  <div class="logo"><a href="index.html">Nest &amp; Now</a></div>
+</nav>
+
+<div class="wrap">
+  <h1>Stell dir dein Paket zusammen</h1>
+  <p class="subtitle">Wähle einzelne Komponenten oder starte mit einer Vorlage.</p>
+
+  <div class="presets">
+    <button class="preset-btn" onclick="ladeVorlage('starter')">Starter-Paket laden</button>
+    <button class="preset-btn" onclick="ladeVorlage('komfort')">Komfort-Paket laden</button>
+    <button class="preset-btn" onclick="paketZuruecksetzen()">Zurücksetzen</button>
+  </div>
+
+  <div class="layout">
+    <div id="komponenten-liste"></div>
+
+    <aside class="mein-paket">
+      <h2>Mein Paket</h2>
+      <ul id="ausgewaehlte-liste"></ul>
+      <div class="summe-row">
+        <span class="label">Monatlich</span>
+        <span class="betrag" id="gesamtpreis">0,00&nbsp;€<span> /Monat</span></span>
+      </div>
+      <button class="weiter-btn" id="weiter-btn" disabled onclick="weiterZumWarenkorb()">Weiter zum Warenkorb</button>
+    </aside>
+  </div>
+</div>
+
+<script src="komponenten.js"></script>
+<script src="builder.js"></script>
+<script>
+  let aktuellerBuilder = new SmartHomePaketBuilder();
+
+  function renderKomponenten() {
+    const liste = document.getElementById("komponenten-liste");
+    liste.innerHTML = "";
+    KOMPONENTEN.forEach(k => {
+      const el = document.createElement("div");
+      el.className = "komponente";
+      el.innerHTML = `
+        <div class="info">
+          <div class="name">${k.name}</div>
+          <div class="beschreibung">${k.beschreibung}</div>
+        </div>
+        <div class="preis-info">
+          <span class="preis">${k.preis.toFixed(2)}&nbsp;€/Monat</span>
+          <button class="add-btn" onclick="komponenteHinzufuegen('${k.id}')">+ Hinzufügen</button>
+        </div>`;
+      liste.appendChild(el);
+    });
+  }
+
+  function komponenteHinzufuegen(kompId) {
+    aktuellerBuilder.addKomponente(kompId);
+    renderPaket();
+  }
+
+  function komponenteEntfernen(kompId) {
+    aktuellerBuilder.paket.removeKomponente(kompId);
+    renderPaket();
+  }
+
+  function ladeVorlage(typ) {
+    aktuellerBuilder = new SmartHomePaketBuilder();
+    const konfigurator = new PaketKonfigurator(aktuellerBuilder);
+    if (typ === "starter") konfigurator.buildStarterPaket();
+    if (typ === "komfort") konfigurator.buildKomfortPaket();
+    renderPaket();
+  }
+
+  function paketZuruecksetzen() {
+    aktuellerBuilder = new SmartHomePaketBuilder();
+    renderPaket();
+  }
+
+  function renderPaket() {
+    const paket = aktuellerBuilder.build();
+    const liste = document.getElementById("ausgewaehlte-liste");
+    const preisEl = document.getElementById("gesamtpreis");
+    const weiterBtn = document.getElementById("weiter-btn");
+
+    liste.innerHTML = "";
+    if (paket.komponenten.length === 0) {
+      liste.innerHTML = `<li class="leer-hinweis">Noch keine Komponente ausgewählt.</li>`;
+    } else {
+      paket.komponenten.forEach(k => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${k.name}</span>
+          <button class="remove-btn" onclick="komponenteEntfernen('${k.id}')">entfernen</button>`;
+        liste.appendChild(li);
+      });
+    }
+
+    preisEl.innerHTML = `${paket.monatspreis.toFixed(2)}&nbsp;€<span> /Monat</span>`;
+    weiterBtn.disabled = paket.komponenten.length === 0;
+  }
+
+  function weiterZumWarenkorb() {
+    sessionStorage.setItem("meinPaket", JSON.stringify(aktuellerBuilder.build().komponenten));
+    window.location.href = "warenkorb.html";
+  }
+
+  renderKomponenten();
+  renderPaket();
+</script>
+
+</body>
+</html>
