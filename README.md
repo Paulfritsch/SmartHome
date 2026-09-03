@@ -6,6 +6,9 @@ Berufsschulprojekt (Anwendungsentwickler, 3. Lehrjahr): eine Smart-Home-Lösung 
 die sich durch die eingesparten Energiekosten selbst finanziert (Bezug zu SDG 12).
 
 ### Dokumentation
+
+https://miro.com/app/board/uXjVHuycnkY=/
+
 - [Projektkonzept.md](Projektkonzept.md) – Unternehmenskonzept/Entrepreneurship
 - [docs/Sprint1_Define_Understand.md](docs/Sprint1_Define_Understand.md) – Problem Tree, Persona, Empathy Map, Problem Statement
 - [docs/Sprint2_Sketch_Solution.md](docs/Sprint2_Sketch_Solution.md) – Customer Journey, Value Proposition, Business Model Canvas, Backlog
