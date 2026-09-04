@@ -1,67 +1,146 @@
-//Product
+let aktuellerBuilder = new SmartHomePaketBuilder();
 
-class SmartHomePaket {
-    constructor() {
-        this.komponenten = [];
-    }
+function formatiereEuro(betrag) {
+    return betrag.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
-    addKomponente(komponente) {
-        this.kompontenten.push(komponente);
-    }
+function renderKomponenten() {
+    const liste = document.getElementById("komponenten-liste");
+    liste.innerHTML = "";
 
-    removeKomponente(kompId) {
-        const index = this.komponeten.findIndex(k => k.id ===kompId);
-        if (index !== -1) this.komponenten.splice(index, 1);
-    }
+    KOMPONENTEN.forEach(komponente => {
+        const eintrag = document.createElement("div");
+        eintrag.className = "komponente";
+        eintrag.innerHTML = `
+            <div class="info">
+                <div class="name">${komponente.name}</div>
+                <div class="beschreibung">${komponente.beschreibung}</div>
+            </div>
+            <div class="preis-info">
+                <span class="preis">${formatiereEuro(komponente.preis)}&nbsp;€/Monat</span>
+                <button class="add-btn" type="button" onclick="komponenteHinzufuegen('${komponente.id}')">+ Hinzufügen</button>
+            </div>`;
+        liste.appendChild(eintrag);
+    });
+}
 
-    get monatspreis() {
-        return this.komponenten.reduce((summe, k) => summe + k.preis, 0);
+function komponenteHinzufuegen(kompId) {
+    aktuellerBuilder.addKomponente(kompId);
+    renderPaket();
+}
+
+function komponenteEntfernen(kompId) {
+    aktuellerBuilder.paket.removeKomponente(kompId);
+    renderPaket();
+}
+
+function ladeVorlage(typ) {
+    aktuellerBuilder = new SmartHomePaketBuilder();
+    const konfigurator = new PaketKonfigurator(aktuellerBuilder);
+
+    if (typ === "starter") konfigurator.buildStarterPaket();
+    if (typ === "komfort") konfigurator.buildKomfortPaket();
+    renderPaket();
+}
+
+function paketZuruecksetzen() {
+    aktuellerBuilder = new SmartHomePaketBuilder();
+    renderPaket();
+}
+
+function ladeGespeichertesPaket() {
+    try {
+        const daten = JSON.parse(sessionStorage.getItem("meinPaket") || "[]");
+        if (!Array.isArray(daten)) return;
+
+        daten.forEach(komponente => {
+            if (komponente && KOMPONENTEN.some(eintrag => eintrag.id === komponente.id)) {
+                aktuellerBuilder.addKomponente(komponente.id);
+            }
+        });
+
+        const energiekosten = Number(sessionStorage.getItem("energiekosten"));
+        if (Number.isFinite(energiekosten) && energiekosten > 0) {
+            document.getElementById("energiekosten").value = String(energiekosten);
+        }
+    } catch (fehler) {
+        aktuellerBuilder = new SmartHomePaketBuilder();
     }
 }
 
-//Builder-Interface
-class PaketBuilder {
-    addKomponente(kompId) { throw new Error("Muss implementiert werden"); }
-    build() {throw new Error("Muss implementiert werden");}
+function aktualisiereBerechnung() {
+    const paket = aktuellerBuilder.build();
+    const energiekosten = Number(document.getElementById("energiekosten").value);
+    const ausgabe = document.getElementById("ersparnis-ausgabe");
+
+    if (!Number.isFinite(energiekosten) || energiekosten <= 0) {
+        ausgabe.textContent = "Bitte gültige monatliche Energiekosten eingeben.";
+        return;
+    }
+
+    const ersparnis = paket.berechneErsparnis(energiekosten);
+    const differenz = ersparnis - paket.monatspreis;
+    const ergebnis = differenz >= 0
+        ? `${formatiereEuro(differenz)} € mehr Ersparnis als Abo-Kosten.`
+        : `${formatiereEuro(Math.abs(differenz))} € mehr Abo-Kosten als geschätzte Ersparnis.`;
+
+    ausgabe.textContent = `Geschätzte Ersparnis: ${formatiereEuro(ersparnis)} € pro Monat (${paket.ersparnisProzent} %). ${ergebnis}`;
 }
 
-//Concrete Builder
-class SmartHomePAketBuilder extends PaketBuilder {
-    constructor() {
-        super();
-        this.paket = new SmartHomePaket();
+function renderPaket() {
+    const paket = aktuellerBuilder.build();
+    const liste = document.getElementById("ausgewaehlte-liste");
+    const preisEl = document.getElementById("gesamtpreis");
+    const weiterBtn = document.getElementById("weiter-btn");
+
+    liste.innerHTML = "";
+    if (paket.komponenten.length === 0) {
+        const leer = document.createElement("li");
+        leer.className = "leer-hinweis";
+        leer.textContent = "Noch keine Komponente ausgewählt.";
+        liste.appendChild(leer);
+    } else {
+        paket.komponenten.forEach(komponente => {
+            const eintrag = document.createElement("li");
+            const name = document.createElement("span");
+            const entfernen = document.createElement("button");
+            name.textContent = komponente.name;
+            entfernen.className = "remove-btn";
+            entfernen.type = "button";
+            entfernen.textContent = "entfernen";
+            entfernen.addEventListener("click", () => komponenteEntfernen(komponente.id));
+            eintrag.append(name, entfernen);
+            liste.appendChild(eintrag);
+        });
     }
 
-    addKomponente(kompId) {
-        const komponente = KOMPONENTEN.find(k => k.id ===kompId);
-        if (!komponente) throw new Error(`Unbekannte Komponente: ${kompId}`);
-        this.paket.addKomponente(komponente);
-        return this;
-    }
-
-    build() {
-        return this.paket;
-    }
+    preisEl.innerHTML = `${formatiereEuro(paket.monatspreis)}&nbsp;€<span> /Monat</span>`;
+    weiterBtn.disabled = paket.komponenten.length === 0;
+    aktualisiereBerechnung();
 }
 
-//Director
-class PaketKonfigurator {
-    constructor(builder) {
-        this.builder = builder;
+function weiterZumWarenkorb() {
+    const energiekosten = Number(document.getElementById("energiekosten").value);
+    if (!Number.isFinite(energiekosten) || energiekosten <= 0) {
+        document.getElementById("energiekosten").focus();
+        aktualisiereBerechnung();
+        return;
     }
 
-    buildStarterPaket() {
-        return this.builder
-            .addKomponente("led").addKomponente("led")
-            .addKomponente("bewegung")
-            .build();
-    }
+    const paket = aktuellerBuilder.build();
+    sessionStorage.setItem("meinPaket", JSON.stringify(paket.komponenten));
+    sessionStorage.setItem("energiekosten", String(energiekosten));
+    window.location.href = "warenkorb.html";
+}
 
-    buildKomfortPaket() {
-        return this.builder
-            .addKomponente("led").addKomponente("led").addKomponente("led").addKomponente("led")
-            .addKomponente("bewegung").addKomponente("bewegung")
-            .addKomponente("temperatur")
-            .build();
-    }
+document.getElementById("energiekosten").addEventListener("input", aktualisiereBerechnung);
+renderKomponenten();
+
+const parameter = new URLSearchParams(window.location.search);
+const vorlage = parameter.get("paket");
+if (vorlage === "starter" || vorlage === "komfort") {
+    ladeVorlage(vorlage);
+} else {
+    if (parameter.get("bearbeiten") === "1") ladeGespeichertesPaket();
+    renderPaket();
 }

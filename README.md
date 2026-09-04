@@ -16,10 +16,14 @@ https://miro.com/app/board/uXjVHuycnkY=/
 - [docs/Sprint4_Features_DesignPattern.md](docs/Sprint4_Features_DesignPattern.md) – Reflexion, Design Pattern (Observer)
 
 ### Prototyp
-Lauffähiger PHP-Prototyp unter [prototype/](prototype/) (Observer Pattern für Verbrauchsüberwachung).
+
+Der Sprint-3-Klick-Prototyp liegt unter [smarthome/](smarthome/). Er enthält Startseite,
+Paket-Konfigurator, eine vereinfachte Ersparnisrechnung und den Warenkorb.
 
 ```
-composer install
-php -S localhost:8000 -t prototype/public
-composer exec phpunit
+cd smarthome
+python -m http.server 8080
 ```
+
+Danach `http://localhost:8080` öffnen. Der PHP-Prototyp unter [prototype/](prototype/) und seine
+PHPUnit-Tests bleiben als Vorarbeit für die Verbrauchsüberwachung und Sprint 4 erhalten.

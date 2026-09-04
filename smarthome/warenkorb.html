@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warenkorb – SmartSave</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<nav class="wrap">
+  <div class="logo"><a href="index.html">SmartSave</a></div>
+  <a class="nav-cta" href="konfigurator.html?bearbeiten=1">Paket bearbeiten</a>
+</nav>
+
+<main class="wrap">
+  <header class="page-header">
+    <h1>Dein SmartSave-Paket</h1>
+    <p>Prüfe die Auswahl und die vereinfachte Beispielrechnung.</p>
+  </header>
+
+  <div class="cart-layout">
+    <section class="cart-card">
+      <h2>Ausgewählte Komponenten</h2>
+      <ul class="cart-list" id="warenkorb-liste"></ul>
+      <p class="summary-note" id="leer-hinweis" hidden>Dein Warenkorb ist leer. Stelle zuerst ein Paket zusammen.</p>
+    </section>
+
+    <aside class="cart-card">
+      <h2>Monatliche Übersicht</h2>
+      <div class="summary-row"><span>Bisherige Energiekosten</span><span id="energiekosten">0,00 €</span></div>
+      <div class="summary-row"><span>Geschätzte Ersparnis</span><span id="ersparnis">0,00 €</span></div>
+      <div class="summary-row total"><span>Abo-Kosten</span><span id="abokosten">0,00 €</span></div>
+      <div class="summary-row"><span>Differenz</span><span id="differenz">0,00 €</span></div>
+      <p class="summary-note">Laufzeit: 24 Monate. Danach geht die Hardware in dein Eigentum über. Alle Werte dienen nur zur Demonstration.</p>
+      <div class="cart-actions">
+        <a class="button button-secondary" href="konfigurator.html?bearbeiten=1">Zurück</a>
+        <button class="button button-primary" id="bestellen-btn" type="button">Testbestellung abschließen</button>
+      </div>
+      <p class="order-status" id="bestell-status" role="status"></p>
+    </aside>
+  </div>
+</main>
+
+<footer class="wrap">© 2026 SmartSave — Ein Schulprojekt im Rahmen von Smart Living</footer>
+
+<script src="js/komponenten.js"></script>
+<script src="js/builder.js"></script>
+<script src="js/warenkorb.js"></script>
+</body>
+</html>

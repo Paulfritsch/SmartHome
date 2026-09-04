@@ -20,6 +20,11 @@ jobs:
           php-version: '8.2'
           coverage: xdebug
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Validate composer.json
         run: composer validate --strict
 
@@ -31,3 +36,6 @@ jobs:
 
       - name: Run unit tests
         run: vendor/bin/phpunit --coverage-text
+
+      - name: Test website prototype
+        run: node --test tests/js/builder.test.js tests/js/html.test.js
