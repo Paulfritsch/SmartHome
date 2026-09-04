@@ -3,135 +3,130 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartSave</title>
+<title>SmartSave – Smart wohnen, einfach sparen</title>
 <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-<nav class="wrap">
-  <div class="logo">SmartSave</div>
+<body class="home-page">
+
+<nav class="site-nav wrap">
+  <div class="logo"><a href="index.html">SmartSave</a></div>
   <div class="nav-links">
     <a href="#funktion">So funktioniert's</a>
     <a href="#pakete">Pakete</a>
-    <a href="#warum">Warum wir</a>
+    <a href="#warum">Vorteile</a>
   </div>
-  <a class="nav-cta" href="konfigurator.html">Paket zusammenstellen</a>
+  <a class="nav-cta" href="konfigurator.html">Paket erstellen</a>
 </nav>
 
 <header class="hero wrap">
   <div class="hero-grid">
     <div>
-      <h1>Smart Home, das sich durch deine Ersparnis mitfinanziert.</h1>
-      <p class="lead">Nutze energiesparende Hardware ohne hohen Einmalkauf. Im 24-Monats-Abo siehst du transparent, was dein Paket kostet und voraussichtlich spart.</p>
+      <p class="eyebrow">Smart wohnen. Einfach sparen.</p>
+      <h1>Weniger Energie. Mehr Zuhause.</h1>
+      <p class="lead">Stelle dein Smart-Home-Paket zusammen und zahle bequem monatlich. So bleibt dein Einstieg übersichtlich und deine mögliche Ersparnis immer im Blick.</p>
       <div class="hero-ctas">
-        <a class="btn-primary" href="konfigurator.html">Eigenes Paket bauen</a>
-        <a class="btn-secondary" href="#pakete">Fertige Pakete ansehen</a>
+        <a class="btn-primary" href="konfigurator.html">Paket zusammenstellen</a>
+        <a class="btn-secondary" href="#pakete">Pakete ansehen</a>
       </div>
-      <p class="hero-note">Ab 4,99&nbsp;€/Monat pro Komponente · Hardware nach 24 Monaten in deinem Eigentum</p>
+      <p class="hero-note">24 Monate Laufzeit · Support inklusive · Hardware danach dein Eigentum</p>
     </div>
-    <div class="device-panel">
-      <div class="panel-label">Dein Zuhause, live in der App</div>
-      <div class="device-list">
-        <div class="device-row"><span class="name">Wohnzimmer · LED-Streifen</span><span class="status"><span class="dot"></span>an</span></div>
-        <div class="device-row"><span class="name">Flur · Bewegungsmelder</span><span class="status"><span class="dot"></span>aktiv</span></div>
-        <div class="device-row"><span class="name">Küche · Temperatursensor</span><span class="status"><span class="dot"></span>21,4&nbsp;°C</span></div>
+
+    <div class="home-preview" aria-label="Vorschau der SmartSave App">
+      <div class="preview-window">
+        <div class="preview-top">
+          <span class="preview-title">Mein Zuhause</span>
+          <span class="live-pill">● Live</span>
+        </div>
+        <div class="energy-card">
+          <div class="energy-label">Verbrauch in diesem Monat</div>
+          <div class="energy-value">84,2 kWh <span>−18 %</span></div>
+          <div class="mini-chart" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="preview-devices">
+          <div class="preview-device"><span class="device-icon">☼</span><span>Licht<span class="device-state">3 Geräte aktiv</span></span></div>
+          <div class="preview-device"><span class="device-icon">↯</span><span>Steckdosen<span class="device-state">2 Geräte aktiv</span></span></div>
+        </div>
       </div>
     </div>
   </div>
 </header>
 
-<section id="funktion" class="wrap steps">
-  <div class="section-head">
-    <h2>Drei Schritte bis zum smarten Zuhause</h2>
+<div class="trust-strip">
+  <div class="wrap trust-grid">
+    <div class="trust-item"><span class="trust-number">ab 4,99 €</span><span class="trust-text">pro Komponente im Monat</span></div>
+    <div class="trust-item"><span class="trust-number">24 Monate</span><span class="trust-text">feste und klare Laufzeit</span></div>
+    <div class="trust-item"><span class="trust-number">bis 30 %</span><span class="trust-text">geschätztes Sparpotenzial</span></div>
   </div>
-  <div class="step-row">
-    <div class="num">01</div>
-    <div><h3>Paket wählen oder selbst zusammenstellen</h3><p>Starte mit einem fertigen Paket oder wähle einzeln aus, welche Geräte du wirklich brauchst.</p></div>
-  </div>
-  <div class="step-row">
-    <div class="num">02</div>
-    <div><h3>Hardware kommt zu dir</h3><p>Wir liefern die Geräte fix und fertig – kein Zubehör-Wirrwarr, keine Kompatibilitätsfragen.</p></div>
-  </div>
-  <div class="step-row">
-    <div class="num">03</div>
-    <div><h3>In der App einrichten</h3><p>Geräte verbinden, Automationen anlegen, bei Fragen den Support direkt in der App erreichen.</p></div>
-  </div>
-</section>
+</div>
 
-<section id="pakete" class="packages">
-  <div class="wrap">
-    <div class="section-head">
-      <h2>Pakete für jeden Einstieg</h2>
-      <p>Alle Pakete lassen sich jederzeit erweitern oder anpassen.</p>
-    </div>
-    <div class="package-grid">
-      <div class="package-card">
-        <div class="p-name">Starter</div>
-        <div class="p-price">17,97&nbsp;€ <span>/ Monat</span></div>
-        <ul>
-          <li>2× smarte LED</li>
-          <li>1× Bewegungsmelder</li>
-          <li>App-Zugang &amp; Support</li>
-        </ul>
-        <a href="konfigurator.html?paket=starter">Auswählen</a>
+<main>
+  <section id="funktion" class="light-section">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">So funktioniert's</p>
+        <h2>In drei einfachen Schritten zum smarten Zuhause.</h2>
       </div>
-      <div class="package-card highlight">
-        <div class="p-name">Komfort</div>
-        <div class="p-price">42,93&nbsp;€ <span>/ Monat</span></div>
-        <ul>
-          <li>4× smarte LED</li>
-          <li>2× Bewegungsmelder</li>
-          <li>1× Temperatursensor</li>
-          <li>App-Zugang &amp; Support</li>
-        </ul>
-        <a href="konfigurator.html?paket=komfort">Auswählen</a>
-      </div>
-      <div class="package-card">
-        <div class="p-name">Eigenes Paket</div>
-        <div class="p-price">ab 4,99&nbsp;€ <span>/ Komponente</span></div>
-        <ul>
-          <li>Frei kombinierbar</li>
-          <li>Nur zahlen, was du nutzt</li>
-          <li>App-Zugang &amp; Support</li>
-        </ul>
-        <a href="konfigurator.html">Selbst zusammenstellen</a>
+      <div class="step-grid">
+        <article class="step-card"><span class="step-number">01</span><h3>Paket auswählen</h3><p>Nutze eine Vorlage oder kombiniere genau die Geräte, die zu deiner Wohnung passen.</p></article>
+        <article class="step-card"><span class="step-number">02</span><h3>Geräte erhalten</h3><p>Deine Hardware kommt vorbereitet zu dir. Zubehör und Support sind bereits dabei.</p></article>
+        <article class="step-card"><span class="step-number">03</span><h3>Verbrauch senken</h3><p>Verbinde alles mit der App und behalte Verbrauch und mögliche Ersparnis im Blick.</p></article>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="warum" class="wrap">
-  <div class="section-head">
-    <h2>Warum ein Abo statt Kauf</h2>
-  </div>
-  <div class="why-grid">
-    <div class="why-item">
-      <div class="mark">＋</div>
-      <h3>Keine hohe Startzahlung</h3>
-      <p>Die Kosten verteilen sich planbar über die Laufzeit statt auf einen großen Einmalkauf.</p>
+  <section id="pakete" class="packages">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Abonnements</p>
+        <h2>Ein Paket, das zu deinem Alltag passt.</h2>
+        <p>Alle Varianten enthalten den App-Zugang und persönlichen Support.</p>
+      </div>
+      <div class="package-grid">
+        <article class="package-card">
+          <span class="plan-label">KLEIN STARTEN</span>
+          <div class="p-name">Starter</div>
+          <p class="p-desc">Für einzelne Räume und den ersten Schritt ins Smart Home.</p>
+          <div class="p-price">17,97 € <span>/ Monat</span></div>
+          <ul><li>2 smarte LEDs</li><li>1 Bewegungsmelder</li><li>App-Zugang &amp; Support</li></ul>
+          <a href="konfigurator.html?paket=starter">Starter wählen</a>
+        </article>
+
+        <article class="package-card highlight">
+          <span class="plan-label">BELIEBTESTE WAHL</span>
+          <div class="p-name">Komfort</div>
+          <p class="p-desc">Mehr Geräte für mehrere Räume und bessere Automationen.</p>
+          <div class="p-price">42,93 € <span>/ Monat</span></div>
+          <ul><li>4 smarte LEDs</li><li>2 Bewegungsmelder</li><li>1 Temperatursensor</li><li>App-Zugang &amp; Support</li></ul>
+          <a href="konfigurator.html?paket=komfort">Komfort wählen</a>
+        </article>
+
+        <article class="package-card">
+          <span class="plan-label">FLEXIBEL</span>
+          <div class="p-name">Individuell</div>
+          <p class="p-desc">Du entscheidest selbst, welche Komponenten du wirklich brauchst.</p>
+          <div class="p-price">ab 4,99 € <span>/ Komponente</span></div>
+          <ul><li>Frei kombinierbar</li><li>Nur zahlen, was du nutzt</li><li>App-Zugang &amp; Support</li></ul>
+          <a href="konfigurator.html">Selbst zusammenstellen</a>
+        </article>
+      </div>
     </div>
-    <div class="why-item">
-      <div class="mark">＋</div>
-      <h3>Ersparnis im Blick</h3>
-      <p>Der Rechner vergleicht die geschätzte Energieersparnis direkt mit deinen Abo-Kosten.</p>
+  </section>
+
+  <section id="warum" class="light-section">
+    <div class="wrap">
+      <div class="section-head"><p class="eyebrow">Warum SmartSave</p><h2>Transparent von der Auswahl bis zur Ersparnis.</h2></div>
+      <div class="why-grid">
+        <article class="why-item"><h3>Kein hoher Kaufpreis</h3><p>Die Kosten verteilen sich planbar über 24 Monate.</p></article>
+        <article class="why-item"><h3>Ersparnis direkt sehen</h3><p>Der Rechner vergleicht deine Schätzung mit den monatlichen Kosten.</p></article>
+        <article class="why-item"><h3>Support inklusive</h3><p>Bei Fragen zur Einrichtung bekommst du Hilfe direkt über die App.</p></article>
+      </div>
     </div>
-    <div class="why-item">
-      <div class="mark">＋</div>
-      <h3>Support inklusive</h3>
-      <p>Fragen zur Einrichtung? Direkt in der App, ohne Hotline-Warteschleife.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<section class="cta-band">
-  <div class="wrap">
-    <h2>Stell dir dein erstes Paket zusammen – dauert keine fünf Minuten.</h2>
-    <a class="btn-primary" href="konfigurator.html">Jetzt starten</a>
-  </div>
-</section>
+</main>
 
-<footer class="wrap">
-  © 2026 SmartSave — Ein Schulprojekt im Rahmen von Smart Living
-</footer>
-
+<footer class="site-footer wrap"><span>SmartSave</span><span>© 2026 · Schulprojekt im Rahmen von Smart Living</span></footer>
 </body>
 </html>

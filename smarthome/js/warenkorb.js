@@ -48,8 +48,9 @@ function renderWarenkorb() {
     document.getElementById("differenz").textContent = `${differenz >= 0 ? "+" : ""}${formatiereEuro(differenz)}`;
 }
 
-document.getElementById("bestellen-btn").addEventListener("click", ereignis => {
-    ereignis.currentTarget.disabled = true;
+document.getElementById("payment-form").addEventListener("submit", ereignis => {
+    ereignis.preventDefault();
+    document.getElementById("bestellen-btn").disabled = true;
     document.getElementById("bestell-status").textContent = "Testbestellung abgeschlossen. Es wurden keine Daten versendet.";
 });
 

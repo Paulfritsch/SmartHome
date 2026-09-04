@@ -12,13 +12,17 @@ function renderKomponenten() {
         const eintrag = document.createElement("div");
         eintrag.className = "komponente";
         eintrag.innerHTML = `
-            <div class="info">
-                <div class="name">${komponente.name}</div>
-                <div class="beschreibung">${komponente.beschreibung}</div>
+            <div class="component-main">
+                <span class="component-icon">${komponente.icon}</span>
+                <div class="info">
+                    <div class="name">${komponente.name}</div>
+                    <div class="beschreibung">${komponente.beschreibung}</div>
+                    <span class="saving-tag">bis zu ${komponente.ersparnisProzent} % Ersparnis</span>
+                </div>
             </div>
             <div class="preis-info">
                 <span class="preis">${formatiereEuro(komponente.preis)}&nbsp;€/Monat</span>
-                <button class="add-btn" type="button" onclick="komponenteHinzufuegen('${komponente.id}')">+ Hinzufügen</button>
+                <button class="add-btn" type="button" onclick="komponenteHinzufuegen('${komponente.id}')">Hinzufügen +</button>
             </div>`;
         liste.appendChild(eintrag);
     });

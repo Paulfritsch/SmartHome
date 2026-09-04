@@ -3,136 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Paket-Konfigurator – SmartSave</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
-  :root{
-    --bg:#F2F4EF; --ink:#16211D; --ink-soft:#4B564F;
-    --forest:#2F6B5E; --forest-dim:#DCE8E3; --amber:#C98A3E;
-    --line:#D6D9CF; --card:#FFFFFF;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
-  a{color:inherit;}
-  .wrap{max-width:1000px; margin:0 auto; padding:0 32px;}
-  nav.wrap{display:flex; align-items:center; justify-content:space-between; padding:28px 32px;}
-  .logo{font-family:'Fraunces',serif; font-size:1.2rem; font-weight:600;}
-  .logo a{text-decoration:none;}
-
-  h1{font-family:'Fraunces',serif; font-weight:500; font-size:2rem; margin:32px 0 8px;}
-  .subtitle{color:var(--ink-soft); margin-bottom:32px;}
-
-  .presets{display:flex; gap:12px; margin-bottom:32px;}
-  .preset-btn{
-    background:var(--card); border:1px solid var(--line); padding:10px 18px;
-    border-radius:3px; font-size:0.9rem; font-weight:500; cursor:pointer;
-  }
-  .preset-btn:hover{border-color:var(--forest);}
-
-  .layout{display:grid; grid-template-columns:1.3fr 1fr; gap:32px; padding-bottom:80px;}
-
-  .komponente{
-    display:flex; justify-content:space-between; align-items:center;
-    background:var(--card); border:1px solid var(--line); border-radius:5px;
-    padding:16px 20px; margin-bottom:12px;
-  }
-  .komponente .info .name{font-weight:600; font-size:0.98rem;}
-  .komponente .info .beschreibung{font-size:0.85rem; color:var(--ink-soft); margin-top:2px;}
-  .komponente .preis-info{display:flex; align-items:center; gap:16px;}
-  .komponente .preis{font-size:0.92rem; color:var(--ink-soft);}
-  .add-btn{
-    background:var(--ink); color:#fff; border:none; padding:8px 14px;
-    border-radius:3px; cursor:pointer; font-size:0.85rem; font-weight:500; white-space:nowrap;
-  }
-  .komponente .preis{white-space:nowrap;}
-
-  .mein-paket{
-    background:var(--card); border:1px solid var(--line); border-radius:6px;
-    padding:24px; align-self:start; position:sticky; top:24px;
-  }
-  .mein-paket h2{font-family:'Fraunces',serif; font-weight:500; font-size:1.2rem; margin-bottom:16px;}
-  #ausgewaehlte-liste{list-style:none; margin-bottom:16px; min-height:24px;}
-  #ausgewaehlte-liste li{
-    display:flex; justify-content:space-between; align-items:center;
-    font-size:0.9rem; padding:8px 0; border-bottom:1px solid var(--line);
-  }
-  #ausgewaehlte-liste .remove-btn{
-    background:none; border:none; color:var(--ink-soft); cursor:pointer; font-size:0.85rem;
-  }
-  .leer-hinweis{color:var(--ink-soft); font-size:0.88rem;}
-
-  .verbrauch{margin-top:20px;}
-  .verbrauch label{display:block; font-size:0.9rem; font-weight:600; margin-bottom:6px;}
-  .verbrauch input{
-    width:100%; border:1px solid var(--line); border-radius:3px;
-    padding:10px 12px; font:inherit;
-  }
-  .ersparnis-ausgabe{font-size:0.83rem; color:var(--ink-soft); margin-top:8px;}
-  .hinweis{font-size:0.78rem; color:var(--ink-soft); margin-top:16px;}
-
-  .summe-row{
-    display:flex; justify-content:space-between; align-items:baseline;
-    padding-top:12px; margin-top:4px; border-top:1px solid var(--line);
-  }
-  .summe-row .label{font-size:0.92rem; color:var(--ink-soft);}
-  .summe-row .betrag{font-size:1.5rem; font-weight:600;}
-  .summe-row .betrag span{font-size:0.85rem; font-weight:400; color:var(--ink-soft);}
-
-  .weiter-btn{
-    display:block; width:100%; margin-top:20px; padding:14px; text-align:center;
-    background:var(--forest); color:#fff; border:none; border-radius:3px;
-    font-weight:500; font-size:0.96rem; cursor:pointer;
-  }
-  .weiter-btn:disabled{background:var(--line); color:var(--ink-soft); cursor:not-allowed;}
-
-  @media (max-width:760px){
-    .layout{grid-template-columns:1fr;}
-    .presets{flex-wrap:wrap;}
-    .komponente{align-items:flex-start; gap:14px;}
-    .komponente .preis-info{flex-direction:column; align-items:flex-end; gap:8px;}
-  }
-</style>
+<title>Paket zusammenstellen – SmartSave</title>
+<link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
+<body class="app-page">
 
-<nav class="wrap">
-  <div class="logo"><a href="index.html">SmartSave</a></div>
-</nav>
+<div class="top-area">
+  <nav class="site-nav wrap">
+    <div class="logo"><a href="index.html">SmartSave</a></div>
+    <a class="nav-cta" href="index.html#pakete">Alle Pakete</a>
+  </nav>
+  <header class="page-intro wrap">
+    <p class="eyebrow">Dein Abo</p>
+    <h1>Was braucht dein Zuhause?</h1>
+    <p>Wähle deine Komponenten. Den monatlichen Preis und deine geschätzte Ersparnis siehst du sofort.</p>
+    <div class="progress" aria-label="Fortschritt"><span class="active">1 · Paket</span><span>2 · Bezahlen</span><span>3 · Fertig</span></div>
+  </header>
+</div>
 
-<div class="wrap">
-  <h1>Stell dir dein Paket zusammen</h1>
-  <p class="subtitle">Wähle einzelne Komponenten oder starte mit einer Vorlage.</p>
-
-  <div class="presets">
-    <button class="preset-btn" onclick="ladeVorlage('starter')">Starter-Paket laden</button>
-    <button class="preset-btn" onclick="ladeVorlage('komfort')">Komfort-Paket laden</button>
-    <button class="preset-btn" onclick="paketZuruecksetzen()">Zurücksetzen</button>
+<main class="content-area wrap">
+  <div class="preset-bar">
+    <h2>Schnell auswählen</h2>
+    <div class="presets">
+      <button class="preset-btn" type="button" onclick="ladeVorlage('starter')">Starter laden</button>
+      <button class="preset-btn" type="button" onclick="ladeVorlage('komfort')">Komfort laden</button>
+      <button class="preset-btn" type="button" onclick="paketZuruecksetzen()">Zurücksetzen</button>
+    </div>
   </div>
 
-  <div class="layout">
-    <div id="komponenten-liste"></div>
-
+  <div class="config-layout">
+    <section id="komponenten-liste" aria-label="Verfügbare Komponenten"></section>
     <aside class="mein-paket">
+      <p class="aside-kicker">Deine Auswahl</p>
       <h2>Mein Paket</h2>
       <ul id="ausgewaehlte-liste"></ul>
       <div class="verbrauch">
-        <label for="energiekosten">Bisherige Energiekosten pro Monat</label>
+        <label for="energiekosten">Energiekosten pro Monat</label>
         <input id="energiekosten" type="number" min="1" step="0.01" value="120" inputmode="decimal">
         <p class="ersparnis-ausgabe" id="ersparnis-ausgabe"></p>
       </div>
-      <div class="summe-row">
-        <span class="label">Monatlich</span>
-        <span class="betrag" id="gesamtpreis">0,00&nbsp;€<span> /Monat</span></span>
-      </div>
-      <button class="weiter-btn" id="weiter-btn" disabled onclick="weiterZumWarenkorb()">Weiter zum Warenkorb</button>
-      <p class="hinweis">Die Ersparnis ist eine vereinfachte Schätzung für diesen Schulprototyp.</p>
+      <div class="summe-row"><span class="label">Monatlich</span><span class="betrag" id="gesamtpreis">0,00&nbsp;€<span> / Monat</span></span></div>
+      <button class="weiter-btn" id="weiter-btn" disabled onclick="weiterZumWarenkorb()">Weiter zur Bezahlung</button>
+      <p class="hinweis">Vereinfachte Schätzung für diesen Schulprototyp.</p>
     </aside>
   </div>
-</div>
+</main>
 
 <script src="js/komponenten.js"></script>
 <script src="js/builder.js"></script>
 <script src="js/konfigurator.js"></script>
-
 </body>
 </html>
