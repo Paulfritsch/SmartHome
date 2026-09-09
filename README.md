@@ -6,6 +6,9 @@ Berufsschulprojekt (Anwendungsentwickler, 3. Lehrjahr): eine Smart-Home-Lösung 
 die sich durch die eingesparten Energiekosten selbst finanziert (Bezug zu SDG 12).
 
 ### Dokumentation
+
+https://miro.com/app/board/uXjVHuycnkY=/
+
 - [Projektkonzept.md](Projektkonzept.md) – Unternehmenskonzept/Entrepreneurship
 - [docs/Sprint1_Define_Understand.md](docs/Sprint1_Define_Understand.md) – Problem Tree, Persona, Empathy Map, Problem Statement
 - [docs/Sprint2_Sketch_Solution.md](docs/Sprint2_Sketch_Solution.md) – Customer Journey, Value Proposition, Business Model Canvas, Backlog
@@ -13,10 +16,14 @@ die sich durch die eingesparten Energiekosten selbst finanziert (Bezug zu SDG 12
 - [docs/Sprint4_Features_DesignPattern.md](docs/Sprint4_Features_DesignPattern.md) – Reflexion, Design Pattern (Observer)
 
 ### Prototyp
-Lauffähiger PHP-Prototyp unter [prototype/](prototype/) (Observer Pattern für Verbrauchsüberwachung).
+
+Der Sprint-3-Klick-Prototyp liegt unter [smarthome/](smarthome/). Er enthält Startseite,
+Paket-Konfigurator, eine vereinfachte Ersparnisrechnung und den Warenkorb.
 
 ```
-composer install
-php -S localhost:8000 -t prototype/public
-composer exec phpunit
+cd smarthome
+python -m http.server 8080
 ```
+
+Danach `http://localhost:8080` öffnen. Der PHP-Prototyp unter [prototype/](prototype/) und seine
+PHPUnit-Tests bleiben als Vorarbeit für die Verbrauchsüberwachung und Sprint 4 erhalten.

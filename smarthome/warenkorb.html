@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bezahlung – SmartSave</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-page">
+
+<div class="top-area">
+  <nav class="site-nav wrap">
+    <div class="logo"><a href="index.html">SmartSave</a></div>
+    <a class="nav-cta" href="konfigurator.html?bearbeiten=1">Paket bearbeiten</a>
+  </nav>
+  <header class="page-intro wrap">
+    <p class="eyebrow">Fast geschafft</p>
+    <h1>Prüfen und bezahlen.</h1>
+    <p>Deine Auswahl und alle monatlichen Kosten noch einmal auf einen Blick.</p>
+    <div class="progress" aria-label="Fortschritt"><span>1 · Paket</span><span class="active">2 · Bezahlen</span><span>3 · Fertig</span></div>
+  </header>
+</div>
+
+<main class="content-area wrap">
+  <form id="payment-form" class="checkout-layout">
+    <div class="checkout-left">
+      <section class="checkout-card">
+        <h2>Dein SmartSave-Paket</h2>
+        <p>Diese Komponenten sind in deinem Abo enthalten.</p>
+        <ul class="cart-list" id="warenkorb-liste"></ul>
+        <p class="summary-note" id="leer-hinweis" hidden>Dein Paket ist leer. Stelle zuerst ein Paket zusammen.</p>
+      </section>
+
+      <section class="checkout-card">
+        <h2>Zahlungsmethode</h2>
+        <p>Die Eingaben dienen nur zur Darstellung des Schulprototyps.</p>
+        <div class="payment-choice">
+          <div><strong>Kredit- oder Debitkarte</strong><br><span>Sichere monatliche Zahlung</span></div>
+          <span class="radio-dot" aria-hidden="true"></span>
+        </div>
+        <div class="form-grid">
+          <div class="form-field full"><label for="email">E-Mail-Adresse</label><input id="email" type="email" placeholder="name@beispiel.de" required></div>
+          <div class="form-field full"><label for="kartenname">Name auf der Karte</label><input id="kartenname" type="text" placeholder="Max Mustermann" required></div>
+          <div class="form-field full"><label for="kartennummer">Kartennummer</label><input id="kartennummer" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" required></div>
+          <div class="form-field"><label for="ablaufdatum">Gültig bis</label><input id="ablaufdatum" type="text" inputmode="numeric" placeholder="MM / JJ" required></div>
+          <div class="form-field"><label for="pruefnummer">Prüfnummer</label><input id="pruefnummer" type="text" inputmode="numeric" placeholder="CVC" required></div>
+        </div>
+        <p class="demo-note">Demo: Es werden keine Zahlungsdaten gespeichert oder versendet.</p>
+      </section>
+    </div>
+
+    <aside class="summary-card">
+      <p class="aside-kicker">Übersicht</p>
+      <h2>Monatliche Kosten</h2>
+      <div class="summary-rows">
+        <div class="summary-row"><span>Bisherige Energiekosten</span><span id="energiekosten">0,00 €</span></div>
+        <div class="summary-row"><span>Geschätzte Ersparnis</span><span id="ersparnis">0,00 €</span></div>
+        <div class="summary-row total"><span>Abo-Kosten</span><span id="abokosten">0,00 €</span></div>
+        <div class="summary-row"><span>Monatliche Differenz</span><span id="differenz">0,00 €</span></div>
+      </div>
+      <p class="summary-note">24 Monate Laufzeit. Danach geht die Hardware in dein Eigentum über.</p>
+      <div class="cart-actions">
+        <button class="button button-primary" id="bestellen-btn" type="submit">Testbestellung abschließen</button>
+        <a class="button button-secondary" href="konfigurator.html?bearbeiten=1">Zurück zur Auswahl</a>
+      </div>
+      <p class="order-status" id="bestell-status" role="status"></p>
+    </aside>
+  </form>
+</main>
+
+<script src="js/komponenten.js"></script>
+<script src="js/builder.js"></script>
+<script src="js/warenkorb.js"></script>
+</body>
+</html>
