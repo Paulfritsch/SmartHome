@@ -15,7 +15,7 @@ $pricePerKwh = isset($_POST['price_per_kwh']) ? (float) $_POST['price_per_kwh'] 
 // Watt = typische Leistung, hoursPerDay = geschaetzte taegliche Nutzungsdauer
 $deviceDefaults = [
     'Heizungsthermostat' => ['watt' => 1800.0, 'hours' => 6.0],
-    'Beleuchtung Wohnzimmer' => ['watt' => 90.0, 'hours' => 4.0],
+    'Beleuchtung Schlafzimmer' => ['watt' => 90.0, 'hours' => 4.0],
     'Steckdose Kueche' => ['watt' => 1500.0, 'hours' => 1.5],
 ];
 
