@@ -104,11 +104,21 @@ function renderPaket() {
         leer.textContent = "Noch keine Komponente ausgewählt.";
         liste.appendChild(leer);
     } else {
+        const gruppen = new Map();
         paket.komponenten.forEach(komponente => {
+            const gruppe = gruppen.get(komponente.id);
+            if (gruppe) {
+                gruppe.anzahl += 1;
+            } else {
+                gruppen.set(komponente.id, { komponente, anzahl: 1 });
+            }
+        });
+
+        gruppen.forEach(({ komponente, anzahl }) => {
             const eintrag = document.createElement("li");
             const name = document.createElement("span");
             const entfernen = document.createElement("button");
-            name.textContent = komponente.name;
+            name.textContent = `${komponente.name} x${anzahl}`;
             entfernen.className = "remove-btn";
             entfernen.type = "button";
             entfernen.textContent = "entfernen";
