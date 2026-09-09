@@ -11,7 +11,8 @@ class SavingsCalculator implements ObserverInterface
 
     public function update(Device $device): void
     {
-        $this->totalConsumptionKwh += $device->getCurrentConsumptionKwh();
+        // wichtig: Monatsverbrauch (Watt * Stunden/Tag * Tage), nicht nur Momentanleistung
+        $this->totalConsumptionKwh += $device->getMonthlyConsumptionKwh();
     }
 
     // pricePerKwh in Euro, oldMonthlyCost in Euro
@@ -20,5 +21,10 @@ class SavingsCalculator implements ObserverInterface
         $newMonthlyCost = $this->totalConsumptionKwh * $pricePerKwh;
 
         return max(0.0, $oldMonthlyCost - $newMonthlyCost);
+    }
+
+    public function getTotalMonthlyConsumptionKwh(): float
+    {
+        return $this->totalConsumptionKwh;
     }
 }

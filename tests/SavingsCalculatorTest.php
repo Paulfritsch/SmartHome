@@ -10,67 +10,91 @@ use SmartSave\SavingsCalculator;
 
 final class SavingsCalculatorTest extends TestCase
 {
-    public function testSavingsEqualsOldCostWhenNoConsumption(): void
+    public function testSavingsEqualsOldCostWhenNoDeviceAttached(): void
     {
         $calculator = new SavingsCalculator();
 
         $savings = $calculator->calculateSavings(60.0);
 
         $this->assertSame(60.0, $savings);
+        $this->assertSame(0.0, $calculator->getTotalMonthlyConsumptionKwh());
     }
 
-    public function testSavingsSubtractsNewCostAtDefaultPrice(): void
+    public function testSavingsSubtractsMonthlyCostAtDefaultPrice(): void
     {
+        // 1000 W, 3 Std./Tag => 1 * 3 * 30 = 90 kWh/Monat
+        // Kosten = 90 * 0.35 EUR = 31.50 EUR
         $calculator = new SavingsCalculator();
-        $device = new Device('Heizung', 1500);
+        $device = new Device('Heizung', 1000, 3.0);
+        $device->attach($calculator);
         $device->turnOn();
-        $calculator->update($device);
 
-        // 1.5 kWh * 0.35 EUR = 0.525 EUR neue Kosten
         $savings = $calculator->calculateSavings(60.0);
 
-        $this->assertEqualsWithDelta(59.475, $savings, 0.0001);
+        $this->assertEqualsWithDelta(90.0, $calculator->getTotalMonthlyConsumptionKwh(), 0.0001);
+        $this->assertEqualsWithDelta(28.5, $savings, 0.0001);
     }
 
     public function testSavingsUsesCustomPricePerKwh(): void
     {
+        // 500 W, 2 Std./Tag => 0.5 * 2 * 30 = 30 kWh/Monat
+        // Kosten = 30 * 0.50 EUR = 15 EUR
         $calculator = new SavingsCalculator();
-        $device = new Device('Heizung', 1000);
+        $device = new Device('Waschmaschine', 500, 2.0);
+        $device->attach($calculator);
         $device->turnOn();
-        $calculator->update($device);
 
-        // 1.0 kWh * 0.50 EUR = 0.50 EUR neue Kosten
-        $savings = $calculator->calculateSavings(10.0, 0.50);
+        $savings = $calculator->calculateSavings(20.0, 0.50);
 
-        $this->assertEqualsWithDelta(9.5, $savings, 0.0001);
+        $this->assertEqualsWithDelta(5.0, $savings, 0.0001);
     }
 
     public function testSavingsNeverGoesBelowZero(): void
     {
+        // Sehr hoher Verbrauch => neue Kosten uebersteigen die alten Kosten deutlich
         $calculator = new SavingsCalculator();
-        $device = new Device('Grossverbraucher', 100000);
+        $device = new Device('Grossverbraucher', 100000, 5.0);
+        $device->attach($calculator);
         $device->turnOn();
-        $calculator->update($device);
 
         $savings = $calculator->calculateSavings(10.0);
 
         $this->assertSame(0.0, $savings);
     }
 
-    public function testConsumptionAccumulatesAcrossMultipleUpdates(): void
+    public function testConsumptionAccumulatesAcrossMultipleDevices(): void
     {
+        // Heizung: 1500 W, 6 Std./Tag => 1.5 * 6 * 30 = 270 kWh
+        // Lampe:   60 W,   4 Std./Tag => 0.06 * 4 * 30 = 7.2 kWh
+        // Gesamt: 277.2 kWh, Kosten = 277.2 * 0.35 = 97.02 EUR
         $calculator = new SavingsCalculator();
-        $heizung = new Device('Heizung', 1500);
-        $lampe = new Device('Lampe', 60);
+        $heizung = new Device('Heizung', 1500, 6.0);
+        $lampe = new Device('Lampe', 60, 4.0);
+        $heizung->attach($calculator);
+        $lampe->attach($calculator);
+
         $heizung->turnOn();
         $lampe->turnOn();
 
-        $calculator->update($heizung);
-        $calculator->update($lampe);
+        $savings = $calculator->calculateSavings(200.0);
 
-        // Gesamt 1.56 kWh * 0.35 EUR = 0.546 EUR neue Kosten
+        $this->assertEqualsWithDelta(277.2, $calculator->getTotalMonthlyConsumptionKwh(), 0.0001);
+        $this->assertEqualsWithDelta(102.98, $savings, 0.0001);
+    }
+
+    public function testDeviceThatStaysOffContributesNoConsumption(): void
+    {
+        $calculator = new SavingsCalculator();
+        $device = new Device('Heizung', 1500, 6.0);
+        $device->attach($calculator);
+
+        // explizit ausschalten, damit notify() ausgeloest wird,
+        // Geraet war aber ohnehin nie eingeschaltet
+        $device->turnOff();
+
         $savings = $calculator->calculateSavings(60.0);
 
-        $this->assertEqualsWithDelta(59.454, $savings, 0.0001);
+        $this->assertSame(0.0, $calculator->getTotalMonthlyConsumptionKwh());
+        $this->assertSame(60.0, $savings);
     }
 }

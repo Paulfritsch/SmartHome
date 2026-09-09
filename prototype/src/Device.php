@@ -15,7 +15,9 @@ class Device implements SubjectInterface
 
     public function __construct(
         private readonly string $name,
-        private readonly float $wattage
+        private readonly float $wattage,
+        // geschaetzte taegliche Nutzungsdauer in Stunden, z.B. 6.0 = 6h/Tag
+        private readonly float $hoursPerDay = 0.0
     ) {
     }
 
@@ -66,9 +68,24 @@ class Device implements SubjectInterface
         return $this->wattage;
     }
 
-    // aktueller Verbrauch in kWh je aufgerufener Stunde (vereinfachte Simulation)
+    public function getHoursPerDay(): float
+    {
+        return $this->hoursPerDay;
+    }
+
+    // aktuelle Momentanleistung in kWh/h (nur zur Anzeige "Geraet laeuft gerade")
     public function getCurrentConsumptionKwh(): float
     {
         return $this->isOn ? $this->wattage / 1000 : 0.0;
+    }
+
+    // tatsaechlicher Verbrauch pro Monat in kWh, basierend auf Nutzungsdauer/Tag
+    public function getMonthlyConsumptionKwh(int $daysPerMonth = 30): float
+    {
+        if (!$this->isOn) {
+            return 0.0;
+        }
+
+        return ($this->wattage / 1000) * $this->hoursPerDay * $daysPerMonth;
     }
 }

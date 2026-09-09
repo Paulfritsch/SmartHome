@@ -46,9 +46,11 @@ final class EnergyMonitorTest extends TestCase
         $this->assertSame(0.0, $monitor->getTotalConsumption());
     }
 
-    public function testSavingsCalculatorReturnsPositiveSavingsForLowConsumption(): void
+    public function testSavingsCalculatorReturnsPositiveSavingsForLowMonthlyConsumption(): void
     {
-        $device = new Device('Sparlampe', 60);
+        // Sparlampe: 60 W, 2 Std./Tag => Monatsverbrauch = 0.06 * 2 * 30 = 3.6 kWh
+        // Kosten = 3.6 * 0.35 = 1.26 EUR, deutlich unter den alten 60 EUR
+        $device = new Device('Sparlampe', 60, 2.0);
         $calculator = new SavingsCalculator();
         $device->attach($calculator);
 

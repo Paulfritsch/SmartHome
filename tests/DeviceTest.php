@@ -41,10 +41,18 @@ final class DeviceTest extends TestCase
 
     public function testGettersReturnConstructorValues(): void
     {
-        $device = new Device('Steckdose Kueche', 200);
+        $device = new Device('Steckdose Kueche', 200, 1.5);
 
         $this->assertSame('Steckdose Kueche', $device->getName());
         $this->assertSame(200.0, $device->getWattage());
+        $this->assertSame(1.5, $device->getHoursPerDay());
+    }
+
+    public function testHoursPerDayDefaultsToZero(): void
+    {
+        $device = new Device('Lampe', 60);
+
+        $this->assertSame(0.0, $device->getHoursPerDay());
     }
 
     public function testTurnOnNotifiesAttachedObservers(): void
@@ -94,5 +102,30 @@ final class DeviceTest extends TestCase
         $device->attach($observerA);
         $device->attach($observerB);
         $device->turnOn();
+    }
+
+    public function testMonthlyConsumptionCalculatedFromWattageAndHours(): void
+    {
+        // 1000 W = 1 kWh/h, 2 Std./Tag, 30 Tage => 1 * 2 * 30 = 60 kWh
+        $device = new Device('Heizung', 1000, 2.0);
+        $device->turnOn();
+
+        $this->assertSame(60.0, $device->getMonthlyConsumptionKwh());
+    }
+
+    public function testMonthlyConsumptionIsZeroWhenDeviceIsOff(): void
+    {
+        $device = new Device('Heizung', 1000, 6.0);
+
+        $this->assertSame(0.0, $device->getMonthlyConsumptionKwh());
+    }
+
+    public function testMonthlyConsumptionAcceptsCustomDaysPerMonth(): void
+    {
+        // 1000 W = 1 kWh/h, 1 Std./Tag, 31 Tage => 31 kWh
+        $device = new Device('Heizung', 1000, 1.0);
+        $device->turnOn();
+
+        $this->assertSame(31.0, $device->getMonthlyConsumptionKwh(31));
     }
 }
