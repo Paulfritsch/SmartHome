@@ -97,4 +97,29 @@ final class SavingsCalculatorTest extends TestCase
         $this->assertSame(0.0, $calculator->getTotalMonthlyConsumptionKwh());
         $this->assertSame(60.0, $savings);
     }
+        public function testTurningDeviceOffAfterOnRemovesItsConsumption(): void
+    {
+        $calculator = new SavingsCalculator();
+        $device = new Device('Heizung', 1500, 6.0);
+        $device->attach($calculator);
+
+        $device->turnOn();
+        $device->turnOff();
+
+        $this->assertSame(0.0, $calculator->getTotalMonthlyConsumptionKwh());
+        $this->assertSame(60.0, $calculator->calculateSavings(60.0));
+    }
+
+    public function testTurningDeviceOnTwiceDoesNotCountItTwice(): void
+    {
+        $calculator = new SavingsCalculator();
+        $device = new Device('Heizung', 1500, 6.0);
+        $device->attach($calculator);
+
+        $device->turnOn();
+        $device->turnOn();
+
+        // 1.5 kW * 6 h * 30 Tage = 270 kWh, nicht 540
+        $this->assertEqualsWithDelta(270.0, $calculator->getTotalMonthlyConsumptionKwh(), 0.0001);
+    }
 }
