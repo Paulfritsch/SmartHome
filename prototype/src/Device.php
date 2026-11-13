@@ -8,6 +8,8 @@ use SmartSave\Observer\SubjectInterface;
 // Subjekt im Observer Pattern: benachrichtigt Beobachter bei Zustandsaenderungen
 class Device implements SubjectInterface
 {
+    public const DAYS_PER_MONTH = 30;
+
     /** @var ObserverInterface[] */
     private array $observers = [];
 
@@ -73,14 +75,14 @@ class Device implements SubjectInterface
         return $this->hoursPerDay;
     }
 
-    // aktuelle Momentanleistung in kWh/h (nur zur Anzeige "Geraet laeuft gerade")
-    public function getCurrentConsumptionKwh(): float
+    // aktuelle Leistung in kW (0, wenn das Geraet aus ist) - nicht zu verwechseln mit dem Monatsverbrauch
+    public function getPowerKw(): float
     {
         return $this->isOn ? $this->wattage / 1000 : 0.0;
     }
 
     // tatsaechlicher Verbrauch pro Monat in kWh, basierend auf Nutzungsdauer/Tag
-    public function getMonthlyConsumptionKwh(int $daysPerMonth = 30): float
+    public function getMonthlyConsumptionKwh(int $daysPerMonth = self::DAYS_PER_MONTH): float
     {
         if (!$this->isOn) {
             return 0.0;

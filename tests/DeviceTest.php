@@ -15,7 +15,7 @@ final class DeviceTest extends TestCase
         $device = new Device('Lampe', 60);
 
         $this->assertFalse($device->isOn());
-        $this->assertSame(0.0, $device->getCurrentConsumptionKwh());
+        $this->assertSame(0.0, $device->getPowerKw());
     }
 
     public function testTurnOnSetsStateAndConsumption(): void
@@ -25,7 +25,7 @@ final class DeviceTest extends TestCase
         $device->turnOn();
 
         $this->assertTrue($device->isOn());
-        $this->assertSame(1.5, $device->getCurrentConsumptionKwh());
+        $this->assertSame(1.5, $device->getPowerKw());
     }
 
     public function testTurnOffResetsConsumptionToZero(): void
@@ -36,7 +36,7 @@ final class DeviceTest extends TestCase
         $device->turnOff();
 
         $this->assertFalse($device->isOn());
-        $this->assertSame(0.0, $device->getCurrentConsumptionKwh());
+        $this->assertSame(0.0, $device->getPowerKw());
     }
 
     public function testGettersReturnConstructorValues(): void

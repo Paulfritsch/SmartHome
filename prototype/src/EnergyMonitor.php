@@ -12,7 +12,7 @@ class EnergyMonitor implements ObserverInterface
 
     public function update(Device $device): void
     {
-        $this->consumptionLog[$device->getName()] = $device->getCurrentConsumptionKwh();
+        $this->consumptionLog[$device->getName()] = $device->getPowerKw();
     }
 
     public function getTotalConsumption(): float

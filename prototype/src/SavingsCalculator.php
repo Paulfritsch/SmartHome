@@ -7,6 +7,8 @@ use SmartSave\Observer\ObserverInterface;
 // Beobachter im Observer Pattern: berechnet die monatliche Ersparnis gegenueber den alten Energiekosten
 class SavingsCalculator implements ObserverInterface
 {
+    public const DEFAULT_PRICE_PER_KWH = 0.35;
+
     /** @var array<string, float> Monatsverbrauch in kWh je Geraetename */
     private array $consumptionByDevice = [];
 
@@ -17,7 +19,7 @@ class SavingsCalculator implements ObserverInterface
     }
 
     // pricePerKwh in Euro, oldMonthlyCost in Euro
-    public function calculateSavings(float $oldMonthlyCost, float $pricePerKwh = 0.35): float
+    public function calculateSavings(float $oldMonthlyCost, float $pricePerKwh = self::DEFAULT_PRICE_PER_KWH): float
     {
         $newMonthlyCost = $this->getTotalMonthlyConsumptionKwh() * $pricePerKwh;
 

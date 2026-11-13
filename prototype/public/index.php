@@ -4,60 +4,15 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use SmartSave\Device;
-use SmartSave\EnergyMonitor;
-use SmartSave\SavingsCalculator;
+use SmartSave\Dashboard;
 
-$oldMonthlyCost = isset($_POST['old_cost']) ? (float) $_POST['old_cost'] : 150.0;
-$pricePerKwh = isset($_POST['price_per_kwh']) ? (float) $_POST['price_per_kwh'] : 0.35;
+// Die gesamte Logik steckt in SmartSave\Dashboard - diese Datei zeigt nur die Ergebnisse an.
+$dashboard = Dashboard::fromRequest($_POST, $_SERVER['REQUEST_METHOD'] === 'POST');
 
-// Standardkonfiguration fuer einen 5-Personen-Haushalt (2 Eltern, 3 Kinder):
-// Watt = typische Leistung, hoursPerDay = geschaetzte taegliche Nutzungsdauer
-$deviceDefaults = [
-    'Heizungsthermostat' => ['watt' => 1800.0, 'hours' => 6.0],
-    'Beleuchtung Schlafzimmer' => ['watt' => 90.0, 'hours' => 4.0],
-    'Steckdose Kueche' => ['watt' => 1500.0, 'hours' => 1.5],
-];
-
-$devices = [];
-
-foreach ($deviceDefaults as $name => $default) {
-    $wattageInput = $_POST['device_watt'][$name] ?? null;
-    $wattage = $wattageInput !== null && $wattageInput !== ''
-        ? (float) $wattageInput
-        : $default['watt'];
-
-    $hoursInput = $_POST['device_hours'][$name] ?? null;
-    $hoursPerDay = $hoursInput !== null && $hoursInput !== ''
-        ? (float) $hoursInput
-        : $default['hours'];
-
-    // beim ersten Laden (kein POST) sind alle Geraete an, damit man sofort
-    // ein sinnvolles Ergebnis sieht; danach entscheidet die Checkbox
-    $isOn = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['device_on'][$name]);
-
-    $devices[] = [
-        'device' => new Device($name, $wattage, $hoursPerDay),
-        'isOn' => $isOn,
-    ];
+function e(string|float $value): string
+{
+    return htmlspecialchars((string) $value);
 }
-
-$monitor = new EnergyMonitor();
-$calculator = new SavingsCalculator();
-
-foreach ($devices as $entry) {
-    $device = $entry['device'];
-    $device->attach($monitor);
-    $device->attach($calculator);
-
-    if ($entry['isOn']) {
-        $device->turnOn();
-    } else {
-        $device->turnOff();
-    }
-}
-
-$savings = $calculator->calculateSavings($oldMonthlyCost, $pricePerKwh);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -68,48 +23,58 @@ $savings = $calculator->calculateSavings($oldMonthlyCost, $pricePerKwh);
 <body>
     <h1>SmartSave – Dashboard (Prototyp)</h1>
 
+    <?php if ($dashboard->getErrors() !== []): ?>
+        <div role="alert" style="border: 1px solid #c00; padding: 0.5rem; margin-bottom: 1rem;">
+            <strong>Bitte pruefe deine Eingaben (es wurden Standardwerte verwendet):</strong>
+            <ul>
+                <?php foreach ($dashboard->getErrors() as $error): ?>
+                    <li><?= e($error) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
+
     <form method="post">
         <fieldset>
             <legend>Allgemeine Angaben</legend>
 
             <label for="old_cost">Bisherige monatliche Energiekosten (EUR):</label>
-            <input type="number" step="0.01" id="old_cost" name="old_cost"
-                   value="<?= htmlspecialchars((string) $oldMonthlyCost) ?>">
+            <input type="number" step="0.01" min="0" id="old_cost" name="old_cost"
+                   value="<?= e($dashboard->getOldMonthlyCost()) ?>">
 
             <br><br>
 
             <label for="price_per_kwh">Strompreis (EUR/kWh):</label>
-            <input type="number" step="0.01" id="price_per_kwh" name="price_per_kwh"
-                   value="<?= htmlspecialchars((string) $pricePerKwh) ?>">
+            <input type="number" step="0.01" min="0" id="price_per_kwh" name="price_per_kwh"
+                   value="<?= e($dashboard->getPricePerKwh()) ?>">
         </fieldset>
 
         <fieldset>
             <legend>Geraete</legend>
 
-            <?php foreach ($devices as $entry): ?>
-                <?php $device = $entry['device']; ?>
+            <?php foreach ($dashboard->getDevices() as $device): ?>
                 <div style="margin-bottom: 0.75rem;">
                     <label>
                         <input type="checkbox"
-                               name="device_on[<?= htmlspecialchars($device->getName()) ?>]"
+                               name="device_on[<?= e($device->getName()) ?>]"
                                value="1"
-                               <?= $entry['isOn'] ? 'checked' : '' ?>>
-                        <?= htmlspecialchars($device->getName()) ?>
+                               <?= $device->isOn() ? 'checked' : '' ?>>
+                        <?= e($device->getName()) ?>
                     </label>
 
                     <label style="margin-left: 1rem;">
                         Leistung (Watt):
-                        <input type="number" step="1"
-                               name="device_watt[<?= htmlspecialchars($device->getName()) ?>]"
-                               value="<?= htmlspecialchars((string) $device->getWattage()) ?>"
+                        <input type="number" step="1" min="0" max="<?= e(Dashboard::MAX_WATTAGE) ?>"
+                               name="device_watt[<?= e($device->getName()) ?>]"
+                               value="<?= e($device->getWattage()) ?>"
                                style="width: 6rem;">
                     </label>
 
                     <label style="margin-left: 1rem;">
                         Nutzung (Std./Tag):
-                        <input type="number" step="0.5"
-                               name="device_hours[<?= htmlspecialchars($device->getName()) ?>]"
-                               value="<?= htmlspecialchars((string) $device->getHoursPerDay()) ?>"
+                        <input type="number" step="0.5" min="0" max="<?= e(Dashboard::MAX_HOURS_PER_DAY) ?>"
+                               name="device_hours[<?= e($device->getName()) ?>]"
+                               value="<?= e($device->getHoursPerDay()) ?>"
                                style="width: 5rem;">
                     </label>
                 </div>
@@ -121,20 +86,20 @@ $savings = $calculator->calculateSavings($oldMonthlyCost, $pricePerKwh);
 
     <h2>Aktive Geraete</h2>
     <ul>
-        <?php foreach ($devices as $entry): ?>
-            <?php $device = $entry['device']; ?>
+        <?php foreach ($dashboard->getDevices() as $device): ?>
             <li>
-                <?= htmlspecialchars($device->getName()) ?> –
+                <?= e($device->getName()) ?> –
                 <?= $device->isOn() ? 'an' : 'aus' ?>,
-                <?= $device->getHoursPerDay() ?> Std./Tag
-                (<?= $device->getCurrentConsumptionKwh() ?> kWh/h Momentanleistung)
+                <?= e($device->getHoursPerDay()) ?> Std./Tag
+                (<?= e($device->getPowerKw()) ?> kW aktuelle Leistung)
             </li>
         <?php endforeach; ?>
     </ul>
 
     <h2>Verbrauch &amp; Ersparnis</h2>
-    <p>Gesamtverbrauch: <?= number_format($calculator->getTotalMonthlyConsumptionKwh(), 2) ?> kWh/Monat</p>
-    <p>Neue geschaetzte monatliche Kosten: <?= number_format($calculator->getTotalMonthlyConsumptionKwh() * $pricePerKwh, 2) ?> EUR</p>
-    <p>Geschaetzte monatliche Ersparnis: <?= number_format($savings, 2) ?> EUR</p>
+    <p>Aktuelle Gesamtleistung: <?= number_format($dashboard->getCurrentPowerKw(), 2) ?> kW</p>
+    <p>Gesamtverbrauch: <?= number_format($dashboard->getMonthlyConsumptionKwh(), 2) ?> kWh/Monat</p>
+    <p>Neue geschaetzte monatliche Kosten: <?= number_format($dashboard->getNewMonthlyCost(), 2) ?> EUR</p>
+    <p>Geschaetzte monatliche Ersparnis: <?= number_format($dashboard->getSavings(), 2) ?> EUR</p>
 </body>
 </html>
