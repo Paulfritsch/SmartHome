@@ -12,6 +12,9 @@ final class DeviceRepository
 {
     public const MAX_NAME_LENGTH = 40;
     public const MAX_DEVICES_PER_USER = 30;
+    /** Wie ein Geraet verknuepft wird. Spaeter: echte QR-Erkennung bzw. Pruefung der Seriennummer. */
+    public const PAIRING_METHODS = ['seriennummer' => 'Seriennummer', 'qr' => 'QR-Code'];
+    public const MAX_PAIRING_CODE_LENGTH = 100;
 
     public function __construct(private readonly PDO $pdo)
     {
@@ -29,10 +32,17 @@ final class DeviceRepository
         bool $isOn = true,
         mixed $category = 'sonstiges',
         ?string $offTime = null,
-        ?string $onTime = null
+        ?string $onTime = null,
+        ?string $pairingMethod = null,
+        ?string $pairingCode = null
     ): int {
         [$name, $watt, $hours, $cat, $schedule] = $this->validate($name, $wattage, $hoursPerDay, $category, $offTime, $onTime);
         $this->assertRoomBelongsToUser($userId, $roomId);
+
+        // Demo: Jeder Code wird angenommen (nur gekuerzt). Es gibt noch keine echte Hardware zum Pruefen.
+        $code = $pairingCode === null ? '' : mb_substr(trim($pairingCode), 0, self::MAX_PAIRING_CODE_LENGTH);
+        $code = $code === '' ? null : $code;
+        $method = isset(self::PAIRING_METHODS[(string) $pairingMethod]) ? (string) $pairingMethod : 'seriennummer';
 
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM devices WHERE user_id = :u');
         $count->execute(['u' => $userId]);
@@ -42,19 +52,20 @@ final class DeviceRepository
 
         $this->pdo
             ->prepare(
-                'INSERT INTO devices (user_id, room_id, name, wattage, hours_per_day, is_on, category, off_time, on_time)
-                 VALUES (:u, :r, :n, :w, :h, :on, :c, :off, :ontime)'
+                'INSERT INTO devices (user_id, room_id, name, wattage, hours_per_day, is_on, category, off_time, on_time, pairing_method, pairing_code)
+                 VALUES (:u, :r, :n, :w, :h, :on, :c, :off, :ontime, :pm, :pc)'
             )
             ->execute([
                 'u' => $userId, 'r' => $roomId, 'n' => $name, 'w' => $watt, 'h' => $hours, 'on' => $isOn ? 1 : 0,
                 'c' => $cat->value, 'off' => $schedule?->offTime, 'ontime' => $schedule?->onTime,
+                'pm' => $code === null ? null : $method, 'pc' => $code,
             ]);
 
         return (int) $this->pdo->lastInsertId();
     }
 
     /**
-     * @return array<int, array{id: int, roomId: int, device: Device}> Geraete des Nutzers inkl. Datenbank-ID
+     * @return array<int, array{id: int, roomId: int, device: Device, pairingMethod: ?string, pairingCode: ?string}> Geraete des Nutzers inkl. Datenbank-ID
      */
     public function listForUser(int $userId): array
     {
@@ -72,7 +83,10 @@ final class DeviceRepository
                 $schedule
             );
             $row['is_on'] ? $device->turnOn() : $device->turnOff();
-            $result[] = ['id' => (int) $row['id'], 'roomId' => (int) $row['room_id'], 'device' => $device];
+            $result[] = ['id' => (int) $row['id'], 'roomId' => (int) $row['room_id'], 'device' => $device,
+                'pairingMethod' => $row['pairing_code'] !== null ? (string) $row['pairing_method'] : null,
+                'pairingCode' => $row['pairing_code'] !== null ? (string) $row['pairing_code'] : null,
+            ];
         }
 
         return $result;

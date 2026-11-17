@@ -7,6 +7,7 @@ require __DIR__ . '/_bootstrap.php';
 use SmartSave\Catalog;
 use SmartSave\Dashboard;
 use SmartSave\DeviceCategory;
+use SmartSave\DeviceRepository;
 use SmartSave\ExampleApartment;
 use SmartSave\RoomRepository;
 use SmartSave\Subscription;
@@ -51,9 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     true,
                     postString('category'),
                     postString('off_time'),
-                    postString('on_time')
+                    postString('on_time'),
+                    postString('pairing_method'),
+                    postString('pairing_code')
                 );
-                flash('ok', ['Gerät hinzugefügt.']);
+                flash('ok', ['Gerät hinzugefügt und verknüpft.']);
                 break;
             case 'update_device':
                 $devices->update(
@@ -236,6 +239,9 @@ pageStart('Meine Wohnung', $user);
                             <div class="geraet-text">
                                 <strong><?= e($device->getName()) ?></strong>
                                 <span class="klein"><?= $scheduleOffNow ? 'per Zeitplan aus' : ($device->isOn() ? 'an' : 'aus') ?> · <?= e(number_format($device->getWattage(), 0, ',', '.')) ?> W · <?= e(number_format($device->getHoursPerDay(), 1, ',', '.')) ?> h/Tag · <?= e($device->getCategory()->label()) ?></span>
+                                <?php if ($row['pairingCode'] !== null): ?>
+                                    <span class="klein">Verknüpft per <?= e(DeviceRepository::PAIRING_METHODS[$row['pairingMethod']] ?? 'Code') ?>: <?= e($row['pairingCode']) ?></span>
+                                <?php endif; ?>
                                 <?php if ($schedule !== null):
                                     $savedKwh = $device->getScheduleSavingsKwh(); ?>
                                     <span class="klein zeitplan">Zeitplan: <?= e($schedule->describe()) ?> ·
@@ -297,6 +303,15 @@ pageStart('Meine Wohnung', $user);
                         </label>
                         <label>Ausschalten um <span class="klein">(optional)</span> <input type="time" name="off_time"></label>
                         <label>Wieder einschalten um <span class="klein">(optional)</span> <input type="time" name="on_time"></label>
+                        <label>Verknüpfen per
+                            <select name="pairing_method">
+                                <?php foreach (DeviceRepository::PAIRING_METHODS as $key => $label): ?>
+                                    <option value="<?= e($key) ?>"><?= e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                        <label>Seriennummer oder QR-Code-Inhalt <input name="pairing_code" placeholder="steht auf dem Gerät oder der Verpackung" maxlength="<?= e(DeviceRepository::MAX_PAIRING_CODE_LENGTH) ?>" required></label>
+                        <p class="klein">Demo: Jeder Code wird angenommen, das Gerät wird nur simuliert.</p>
                         <button type="submit">Hinzufügen</button>
                     </form>
                 </details>

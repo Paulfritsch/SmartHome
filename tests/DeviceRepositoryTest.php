@@ -139,4 +139,45 @@ final class DeviceRepositoryTest extends TestCase
         $this->assertEqualsWithDelta(30.0, $dashboard->getNewMonthlyCost(), 0.0001);
         $this->assertEqualsWithDelta(120.0, $dashboard->getSavings(), 0.0001);
     }
+
+    public function testPairingCodeIsStoredWithMethod(): void
+    {
+        $this->devices->add($this->anna, $this->annaRoom, 'Lampe', 10, 2, true, 'licht', null, null, 'qr', 'https://shelly.cloud/x?id=42');
+
+        $row = $this->devices->listForUser($this->anna)[0];
+        $this->assertSame('qr', $row['pairingMethod']);
+        $this->assertSame('https://shelly.cloud/x?id=42', $row['pairingCode']);
+    }
+
+    /** @dataProvider anyPairingCode */
+    public function testAnyPairingCodeIsAccepted(string $code): void
+    {
+        $this->devices->add($this->anna, $this->annaRoom, 'Lampe', 10, 2, true, 'licht', null, null, 'seriennummer', $code);
+
+        $this->assertSame(trim($code), $this->devices->listForUser($this->anna)[0]['pairingCode']);
+    }
+
+    /** @return array<string, array{string}> */
+    public static function anyPairingCode(): array
+    {
+        return ['Zahl' => ['123'], 'Text' => ['egal'], 'Sonderzeichen' => ["<script>'\";--"], 'Umlaute' => ['Küche ÄÖÜ ß'], 'Leerzeichen' => ['  SN 1  ']];
+    }
+
+    public function testPairingCodeIsOptionalAndTooLongCodesAreShortened(): void
+    {
+        $this->devices->add($this->anna, $this->annaRoom, 'Ohne', 10, 2);
+        $this->devices->add($this->anna, $this->annaRoom, 'Lang', 10, 2, true, 'licht', null, null, 'qr', str_repeat('x', 500));
+
+        $rows = $this->devices->listForUser($this->anna);
+        $this->assertNull($rows[0]['pairingCode']);
+        $this->assertNull($rows[0]['pairingMethod']);
+        $this->assertSame(DeviceRepository::MAX_PAIRING_CODE_LENGTH, strlen($rows[1]['pairingCode']));
+    }
+
+    public function testUnknownPairingMethodFallsBackToSerialNumber(): void
+    {
+        $this->devices->add($this->anna, $this->annaRoom, 'Lampe', 10, 2, true, 'licht', null, null, 'bluetooth', 'ABC');
+
+        $this->assertSame('seriennummer', $this->devices->listForUser($this->anna)[0]['pairingMethod']);
+    }
 }

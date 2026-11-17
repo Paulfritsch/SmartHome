@@ -109,6 +109,8 @@ final class Database
             'category' => "TEXT NOT NULL DEFAULT 'sonstiges'",
             'off_time' => 'TEXT',
             'on_time' => 'TEXT',
+            'pairing_method' => 'TEXT',
+            'pairing_code' => 'TEXT',
         ]);
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_devices_user ON devices(user_id)');
     }
