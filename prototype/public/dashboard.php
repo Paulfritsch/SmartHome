@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/_bootstrap.php';
 
+use SmartSave\Catalog;
 use SmartSave\Dashboard;
 use SmartSave\DeviceCategory;
 use SmartSave\ExampleApartment;
 use SmartSave\RoomRepository;
+use SmartSave\Subscription;
 use SmartSave\ValidationException;
 
 $user = requireUser($users);
@@ -76,6 +78,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $users->updateSettings($user->id, postString('price'), postString('old_cost'));
                 flash('ok', ['Einstellungen gespeichert.']);
                 break;
+            case 'book_product':
+                $productId = postString('product');
+                $bookings->book($user->id, $productId, $user->monthsElapsed);
+                flash('ok', [Catalog::PRODUCTS[$productId]['name'] . ' dazugebucht: '
+                    . number_format(Catalog::monthlyPrice($productId, $user->monthsElapsed), 2, ',', '.')
+                    . ' € pro Monat bis zum Ende der Laufzeit.']);
+                break;
+            case 'cancel_booking':
+                $bookings->cancel($user->id, postInt('booking_id'));
+                break;
+            case 'set_month':
+                $users->setMonthsElapsed($user->id, postInt('months'));
+                break;
             case 'add_examples':
                 ExampleApartment::create($user->id, $rooms, $devices);
                 flash('ok', ['Beispielwohnung angelegt.']);
@@ -107,6 +122,11 @@ function euro(float $value): string
     return number_format($value, 2, ',', '.') . ' €';
 }
 
+function signedEuro(float $value): string
+{
+    return ($value < 0 ? '−' : '+') . euro(abs($value));
+}
+
 function categoryOptions(DeviceCategory $selected): string
 {
     $html = '';
@@ -120,6 +140,10 @@ function categoryOptions(DeviceCategory $selected): string
 
 $now = new DateTimeImmutable('now');
 
+$bookingList = $bookings->listForUser($user->id);
+$subscription = new Subscription($dashboard->getSavings(), $bookingList, $user->monthsElapsed);
+$month = $subscription->monthsElapsed();
+
 pageStart('Meine Wohnung', $user);
 ?>
 <h1>Meine Wohnung</h1>
@@ -130,6 +154,50 @@ pageStart('Meine Wohnung', $user);
     <div class="gewinn"><span class="zahl"><?= e(euro($dashboard->getSavings())) ?></span><span class="bez">Ersparnis gegenüber heute (<?= e(euro($user->oldMonthlyCost)) ?>)</span></div>
     <div><span class="zahl"><?= e(euro($dashboard->getScheduleSavings())) ?></span><span class="bez">davon durch Zeitpläne pro Monat (<?= e(number_format($dashboard->getScheduleSavingsKwh(), 1, ',', '.')) ?> kWh)</span></div>
     <div><span class="zahl"><?= e(number_format($dashboard->getCurrentPowerKwAt($now) * 1000, 0, ',', '.')) ?> W</span><span class="bez">Leistung jetzt (<?= e($now->format('H:i')) ?> Uhr)</span></div>
+</section>
+
+<section class="abo" aria-labelledby="abo-titel">
+    <h2 id="abo-titel">Mein Abo</h2>
+    <div class="abo-grid">
+        <div>
+            <p class="klein">Pro Monat</p>
+            <dl class="rechnung">
+                <div><dt>Ersparnis bei den Stromkosten</dt><dd><?= e(signedEuro($subscription->monthlySavings())) ?></dd></div>
+                <div><dt>Abo-Grundgebühr</dt><dd><?= e(signedEuro($subscription->isFinished() ? 0.0 : -Catalog::BASE_MONTHLY_FEE)) ?></dd></div>
+                <div><dt>Zusatztechnik</dt><dd><?= e(signedEuro(-$subscription->currentExtras())) ?></dd></div>
+                <div class="ergebnis <?= $subscription->effectiveMonthly() < 0 ? 'minus' : 'plus' ?>">
+                    <dt>Effektiv gespart pro Monat</dt><dd><?= e(signedEuro($subscription->effectiveMonthly())) ?></dd>
+                </div>
+            </dl>
+            <?php if ($subscription->effectiveMonthly() < 0): ?>
+                <p class="klein">Aktuell kostet das Abo mehr, als du bei den Stromkosten sparst. Schalte mehr Geräte per Zeitplan ab, oder buche weniger Zusatztechnik.</p>
+            <?php endif; ?>
+        </div>
+        <div>
+            <label for="laufzeit" class="laufzeit-label">
+                <?= $subscription->isFinished()
+                    ? 'Die 24 Monate sind vorbei: Die Technik gehört dir.'
+                    : 'Laufzeit: ' . e($month) . ' von ' . e(Catalog::TERM_MONTHS) . ' Monaten vorbei' ?>
+            </label>
+            <progress id="laufzeit" max="<?= e(Catalog::TERM_MONTHS) ?>" value="<?= e($month) ?>"><?= e($month) ?> von <?= e(Catalog::TERM_MONTHS) ?></progress>
+            <p class="bisher">Bisher effektiv gespart: <strong><?= e(signedEuro($subscription->effectiveSoFar())) ?></strong></p>
+            <p class="klein">
+                Über alle 24 Monate (bei deinen heutigen Einstellungen): Ersparnis <?= e(euro($subscription->totalSavings24())) ?>,
+                Abo und Technik <?= e(euro($subscription->totalFees24())) ?>, effektiv <strong><?= e(signedEuro($subscription->totalEffective24())) ?></strong>.
+                Danach entfällt die Gebühr, alle Geräte gehören dir, und du sparst weiter ca. <?= e(euro($subscription->monthlyAfterTerm())) ?> pro Monat.
+            </p>
+        </div>
+    </div>
+
+    <form method="post" class="zeitraffer">
+        <?= csrfField() ?>
+        <input type="hidden" name="action" value="set_month">
+        <span class="klein">Demo-Zeitraffer: so tun, als wäre schon Zeit vergangen.</span>
+        <button type="submit" name="months" value="<?= e(min(Catalog::TERM_MONTHS, $month + 1)) ?>" class="leise">+1 Monat</button>
+        <button type="submit" name="months" value="<?= e(min(Catalog::TERM_MONTHS, $month + 6)) ?>" class="leise">+6 Monate</button>
+        <button type="submit" name="months" value="<?= e(Catalog::TERM_MONTHS) ?>" class="leise">Ende der Laufzeit</button>
+        <button type="submit" name="months" value="0" class="leise">Zurück auf Start</button>
+    </form>
 </section>
 
 <?php if ($roomList === []): ?>
@@ -271,6 +339,60 @@ pageStart('Meine Wohnung', $user);
         <?php endforeach; ?>
     </section>
 <?php endif; ?>
+
+<section class="karte shop" aria-labelledby="shop-titel">
+    <h2 id="shop-titel">Technik dazubuchen</h2>
+    <p class="klein">
+        Im Basis-Abo (<?= e(euro(Catalog::BASE_MONTHLY_FEE)) ?> pro Monat) sind Hub, App und Support enthalten, dazu
+        <?= e(implode(', ', array_map(
+            static fn (string $id, int $count): string => $count . '× ' . Catalog::PRODUCTS[$id]['name'],
+            array_keys(Catalog::BASE_INCLUDED),
+            Catalog::BASE_INCLUDED
+        ))) ?>.
+        Alles Weitere buchst du einfach dazu. Der Preis verteilt sich auf die Restlaufzeit (<?= e($subscription->remainingMonths()) ?> Monate), und nach 24 Monaten gehört alles dir.
+    </p>
+
+    <?php if (!Catalog::canBook($month)): ?>
+        <p class="hinweis fehler">Dazubuchen geht nur, solange noch mindestens <?= e(Catalog::MIN_REMAINING_MONTHS) ?> Monate Laufzeit übrig sind.</p>
+    <?php else: ?>
+        <ul class="produkte">
+            <?php foreach (Catalog::PRODUCTS as $productId => $product):
+                $price = Catalog::monthlyPrice($productId, $month); ?>
+                <li>
+                    <div>
+                        <strong><?= e($product['name']) ?></strong>
+                        <span class="klein"><?= e($product['description']) ?></span>
+                    </div>
+                    <form method="post">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="book_product">
+                        <input type="hidden" name="product" value="<?= e($productId) ?>">
+                        <span class="preis"><?= e(euro($price)) ?> <span class="klein">pro Monat</span></span>
+                        <button type="submit">Dazubuchen</button>
+                    </form>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+
+    <?php if ($bookingList !== []): ?>
+        <h3>Deine gebuchte Zusatztechnik</h3>
+        <ul class="gebucht">
+            <?php foreach ($bookingList as $booking): ?>
+                <li>
+                    <span><?= e(Catalog::PRODUCTS[$booking['product']]['name'] ?? $booking['product']) ?>
+                        <span class="klein">seit Monat <?= e($booking['startMonth']) ?> · <?= e(euro($booking['monthlyPrice'])) ?> pro Monat</span></span>
+                    <form method="post">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="cancel_booking">
+                        <input type="hidden" name="booking_id" value="<?= e($booking['id']) ?>">
+                        <button type="submit" class="gefahr">Entfernen</button>
+                    </form>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</section>
 
 <div class="unten">
     <section class="karte">

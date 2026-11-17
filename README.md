@@ -54,7 +54,15 @@ Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://loca
    - Steckdose: keine Ersparnis (0 %), sonstige Geräte nur Standby (10 %), Licht und Heizung voll (100 %).
 
    Die Werte stehen in `prototype/src/Schedule.php` und `prototype/src/DeviceCategory.php`.
-4. **Nur eigene Daten:** Jede Datenbankabfrage ist an die Nutzer-ID gebunden.
+4. **Abo und Technik:** Mit dem Konto startet ein Demo-Abo (Grundgebühr 6,99 € pro Monat, 24 Monate).
+   Enthalten sind Hub, App, Support, 2× smarte LED, 1× smarte Steckdose und 1× Bewegungsmelder.
+   Weitere Technik lässt sich dazubuchen. Ihr Preis ist ein Gesamtpreis über 24 Monate und verteilt sich
+   auf die Restlaufzeit (später gebucht = höhere Monatsrate; unter 6 Monaten Restlaufzeit nicht mehr buchbar).
+   Das Dashboard zeigt: Ersparnis bei den Stromkosten minus Grundgebühr minus Zusatztechnik = effektiv gespart
+   pro Monat, dazu bisher Gespartes, Prognose für 24 Monate und „danach gehört dir alles“.
+   Ein Demo-Zeitraffer springt in der Laufzeit vor, damit man nicht 24 Monate warten muss.
+   Preise und Produkte stehen zentral in `prototype/src/Catalog.php` (Kalkulation als Kommentar).
+5. **Nur eigene Daten:** Jede Datenbankabfrage ist an die Nutzer-ID gebunden.
 
 Die Datenbank liegt in `prototype/data/smartsave.sqlite` (nicht im Git). Zum Zurücksetzen die Datei löschen.
 Sicherheit: Passwörter nur als Hash (`password_hash`), Prepared Statements, CSRF-Token in jedem Formular,

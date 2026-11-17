@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+use SmartSave\BookingRepository;
 use SmartSave\Database;
 use SmartSave\RoomRepository;
 use SmartSave\DeviceRepository;
@@ -31,6 +32,7 @@ $pdo = Database::connect(getenv('SMARTSAVE_DB') ?: Database::defaultPath());
 $users = new UserRepository($pdo);
 $rooms = new RoomRepository($pdo);
 $devices = new DeviceRepository($pdo);
+$bookings = new BookingRepository($pdo);
 
 function e(string|int|float $value): string
 {

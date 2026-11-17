@@ -11,7 +11,8 @@ final class User
         public readonly string $name,
         public readonly string $email,
         public readonly float $pricePerKwh,
-        public readonly float $oldMonthlyCost
+        public readonly float $oldMonthlyCost,
+        public readonly int $monthsElapsed = 0
     ) {
     }
 }

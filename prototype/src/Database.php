@@ -43,9 +43,21 @@ final class Database
                 password_hash TEXT NOT NULL,
                 price_per_kwh REAL NOT NULL,
                 old_monthly_cost REAL NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                months_elapsed INTEGER NOT NULL DEFAULT 0
             )'
         );
+        self::addMissingColumns($pdo, 'users', ['months_elapsed' => 'INTEGER NOT NULL DEFAULT 0']);
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS bookings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                product TEXT NOT NULL,
+                start_month INTEGER NOT NULL,
+                monthly_price REAL NOT NULL
+            )'
+        );
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_id)');
         $pdo->exec(
             'CREATE TABLE IF NOT EXISTS rooms (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,22 +81,26 @@ final class Database
                 on_time TEXT
             )'
         );
-        self::addMissingDeviceColumns($pdo);
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_devices_user ON devices(user_id)');
-    }
-
-    // Aeltere Datenbanken (vor den Zeitplaenen) bekommen die neuen Spalten nachtraeglich.
-    private static function addMissingDeviceColumns(PDO $pdo): void
-    {
-        $existing = array_column($pdo->query('PRAGMA table_info(devices)')->fetchAll(), 'name');
-        $columns = [
+        self::addMissingColumns($pdo, 'devices', [
             'category' => "TEXT NOT NULL DEFAULT 'sonstiges'",
             'off_time' => 'TEXT',
             'on_time' => 'TEXT',
-        ];
+        ]);
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_devices_user ON devices(user_id)');
+    }
+
+    /**
+     * Aeltere Datenbanken bekommen neue Spalten nachtraeglich. Tabellen- und Spaltennamen
+     * stehen fest im Code, nie aus Nutzereingaben.
+     *
+     * @param array<string, string> $columns Spaltenname => Definition
+     */
+    private static function addMissingColumns(PDO $pdo, string $table, array $columns): void
+    {
+        $existing = array_column($pdo->query("PRAGMA table_info($table)")->fetchAll(), 'name');
         foreach ($columns as $name => $definition) {
             if (!in_array($name, $existing, true)) {
-                $pdo->exec("ALTER TABLE devices ADD COLUMN $name $definition");
+                $pdo->exec("ALTER TABLE $table ADD COLUMN $name $definition");
             }
         }
     }

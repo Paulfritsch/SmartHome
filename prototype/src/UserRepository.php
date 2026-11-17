@@ -114,6 +114,22 @@ final class UserRepository
             ->execute(['price' => $price, 'old' => $oldCost, 'id' => $userId]);
     }
 
+    /**
+     * Demo-Zeitraffer: so tun, als waeren schon $months Monate der Laufzeit vergangen.
+     *
+     * @throws ValidationException
+     */
+    public function setMonthsElapsed(int $userId, int $months): void
+    {
+        if ($months < 0 || $months > Catalog::TERM_MONTHS) {
+            throw new ValidationException(['Laufzeit: bitte einen Wert zwischen 0 und ' . Catalog::TERM_MONTHS . ' Monaten wählen.']);
+        }
+
+        $this->pdo
+            ->prepare('UPDATE users SET months_elapsed = :m WHERE id = :id')
+            ->execute(['m' => $months, 'id' => $userId]);
+    }
+
     /** @return array<string, mixed>|null */
     private function fetchRow(string $column, string|int $value): ?array
     {
@@ -133,7 +149,8 @@ final class UserRepository
             (string) $row['name'],
             (string) $row['email'],
             (float) $row['price_per_kwh'],
-            (float) $row['old_monthly_cost']
+            (float) $row['old_monthly_cost'],
+            (int) ($row['months_elapsed'] ?? 0)
         );
     }
 
