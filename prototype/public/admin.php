@@ -44,9 +44,12 @@ pageStart('Bestellungen', $admin);
         <h2 id="packen">Zum Packen</h2>
         <ul class="packliste">
             <?php foreach ($packing as $productId => $count): ?>
-                <li><strong><?= e($count) ?>×</strong> <?= e(Catalog::PRODUCTS[$productId]['name'] ?? $productId) ?></li>
+                <li><strong><?= e($count) ?>×</strong> <?= e(Catalog::productName($productId)) ?></li>
             <?php endforeach; ?>
         </ul>
+        <?php if (isset($packing[Catalog::BASE_PRODUCT_ID])): ?>
+            <p class="klein">Ein Basis-Set enthält: <?= e(Catalog::baseSetContents()) ?>.</p>
+        <?php endif; ?>
     </section>
 <?php endif; ?>
 
@@ -59,7 +62,7 @@ pageStart('Bestellungen', $admin);
             <?php foreach ($open as $order): ?>
                 <li>
                     <div>
-                        <strong>#<?= e($order['id']) ?> · <?= e($order['quantity']) ?>× <?= e(Catalog::PRODUCTS[$order['product']]['name'] ?? $order['product']) ?></strong>
+                        <strong>#<?= e($order['id']) ?> · <?= e($order['quantity']) ?>× <?= e(Catalog::productName($order['product'])) ?></strong>
                         <span class="klein">bestellt am <?= e(berlinTime($order['createdAt'])) ?> von <?= e($order['customerName']) ?> (<?= e($order['customerEmail']) ?>)</span>
                         <address>
                             <?= e($order['name']) ?><br>
@@ -87,7 +90,7 @@ pageStart('Bestellungen', $admin);
         <ul class="gebucht">
             <?php foreach ($delivered as $order): ?>
                 <li>
-                    <span>#<?= e($order['id']) ?> · <?= e($order['quantity']) ?>× <?= e(Catalog::PRODUCTS[$order['product']]['name'] ?? $order['product']) ?>
+                    <span>#<?= e($order['id']) ?> · <?= e($order['quantity']) ?>× <?= e(Catalog::productName($order['product'])) ?>
                         <span class="klein">an <?= e($order['name']) ?>, <?= e($order['zip']) ?> <?= e($order['city']) ?>
                             · geliefert am <?= e(berlinTime((string) $order['deliveredAt'])) ?></span></span>
                 </li>

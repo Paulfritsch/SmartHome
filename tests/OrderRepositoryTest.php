@@ -273,4 +273,83 @@ final class OrderRepositoryTest extends TestCase
     {
         $this->assertFalse($this->users->setAdmin('niemand@example.de'));
     }
+
+    public function testBaseSetOrderIsOpenOnceAndHasNoBookings(): void
+    {
+        $id = $this->orders->placeBase($this->anna, $this->address);
+
+        $order = $this->orders->listForUser($this->anna->id)[0];
+        $this->assertSame($id, $order['id']);
+        $this->assertSame('basis', $order['product']);
+        $this->assertSame(1, $order['quantity']);
+        $this->assertSame('offen', $order['status']);
+        $this->assertSame(5.99, $order['monthlyPrice']);
+        $this->assertSame('Hauptstraße 1', $order['street']);
+        $this->assertSame([], $this->bookings->listForUser($this->anna->id));
+        $this->assertTrue($this->orders->hasBaseOrder($this->anna->id));
+        $this->assertFalse($this->orders->hasBaseOrder($this->ben->id));
+    }
+
+    public function testBaseSetCanOnlyBeOrderedOncePerAccount(): void
+    {
+        $this->orders->placeBase($this->anna, $this->address);
+
+        try {
+            $this->orders->placeBase($this->anna, $this->address);
+            $this->fail('ValidationException erwartet');
+        } catch (ValidationException) {
+            $this->assertCount(1, $this->orders->listForUser($this->anna->id));
+        }
+    }
+
+    public function testBaseSetNeedsAValidAddress(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $this->orders->placeBase($this->anna, ['zip' => 'abc'] + $this->address);
+    }
+
+    public function testBaseSetShowsUpForAdminsAndInThePackingList(): void
+    {
+        $this->orders->placeBase($this->anna, $this->address);
+        $this->orders->placeBase($this->ben, ['name' => 'Ben'] + $this->address);
+        $this->orders->place($this->anna, 'led', 2, $this->address);
+
+        $this->assertSame(['basis' => 2, 'led' => 2], $this->orders->packingList());
+        $open = $this->orders->listByStatus(OrderRepository::STATUS_OPEN);
+        $this->assertSame(['basis', 'basis', 'led'], array_column($open, 'product'));
+        $this->assertSame('Hamburg', $open[0]['city']);
+        $this->assertSame(3, $this->orders->countByStatus()['offen']);
+    }
+
+    public function testBaseSetCannotBeCancelledButCanBeDelivered(): void
+    {
+        $id = $this->orders->placeBase($this->anna, $this->address);
+
+        $this->assertFalse($this->orders->cancelOpen($this->anna->id, $id));
+        $this->assertSame('offen', $this->orders->listForUser($this->anna->id)[0]['status']);
+        $this->assertTrue($this->orders->markDelivered($id));
+    }
+
+    public function testNormalizeAddressTrimsAndRejectsBadInput(): void
+    {
+        $this->assertSame(
+            ['name' => 'Anna', 'street' => 'Weg 2', 'zip' => '20095', 'city' => 'Hamburg'],
+            $this->orders->normalizeAddress(['name' => ' Anna ', 'street' => ' Weg 2 ', 'zip' => '20095', 'city' => 'Hamburg '])
+        );
+
+        $this->expectException(ValidationException::class);
+        $this->orders->normalizeAddress(['name' => 'Anna']);
+    }
+
+    public function testProductNamesAndBaseSetContents(): void
+    {
+        $this->assertSame('Basis-Set', \SmartSave\Catalog::productName('basis'));
+        $this->assertSame('Smarte LED-Lampe', \SmartSave\Catalog::productName('led'));
+        $this->assertSame('rakete', \SmartSave\Catalog::productName('rakete'));
+        $this->assertSame(
+            'Hub, 2× Smarte LED-Lampe, 1× Smarte Steckdose, 1× Bewegungsmelder',
+            \SmartSave\Catalog::baseSetContents()
+        );
+    }
 }

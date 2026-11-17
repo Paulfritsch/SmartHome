@@ -86,6 +86,67 @@ final class OrderRepository
         return $orderId;
     }
 
+    /**
+     * Bestellung des Basis-Sets (Hub, 2x LED, Steckdose, Bewegungsmelder): einmal pro Konto, ohne Buchungen,
+     * denn die Grundgebuehr steckt schon im Abo.
+     *
+     * @param array{name?: string, street?: string, zip?: string, city?: string} $address
+     * @throws ValidationException
+     */
+    public function placeBase(User $user, array $address, string $paymentMethod = 'vor_ort'): int
+    {
+        $errors = [];
+        if ($this->hasBaseOrder($user->id)) {
+            $errors[] = 'Dein Basis-Set ist schon bestellt.';
+        }
+        if (!isset(self::PAYMENT_METHODS[$paymentMethod])) {
+            $errors[] = 'Zahlungsart: bitte eine der angebotenen Arten wählen.';
+        }
+        $ship = $this->validateAddress($address, $errors);
+        if ($errors !== []) {
+            throw new ValidationException($errors);
+        }
+
+        $this->pdo
+            ->prepare(
+                'INSERT INTO orders (user_id, product, quantity, monthly_price, start_month, payment_method,
+                                     ship_name, ship_street, ship_zip, ship_city)
+                 VALUES (:u, :p, 1, :price, 0, :pay, :n, :s, :z, :c)'
+            )
+            ->execute([
+                'u' => $user->id, 'p' => Catalog::BASE_PRODUCT_ID, 'price' => Catalog::BASE_MONTHLY_FEE, 'pay' => $paymentMethod,
+                'n' => $ship['name'], 's' => $ship['street'], 'z' => $ship['zip'], 'c' => $ship['city'],
+            ]);
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    public function hasBaseOrder(int $userId): bool
+    {
+        $statement = $this->pdo->prepare('SELECT COUNT(*) FROM orders WHERE user_id = :u AND product = :p');
+        $statement->execute(['u' => $userId, 'p' => Catalog::BASE_PRODUCT_ID]);
+
+        return (int) $statement->fetchColumn() > 0;
+    }
+
+    /**
+     * Prueft eine Lieferadresse und gibt sie bereinigt zurueck (z. B. vor dem Anlegen eines Kontos).
+     *
+     * @param array<string, mixed> $address
+     * @return array{name: string, street: string, zip: string, city: string}
+     * @throws ValidationException
+     */
+    public function normalizeAddress(array $address): array
+    {
+        $errors = [];
+        $ship = $this->validateAddress($address, $errors);
+        if ($errors !== []) {
+            throw new ValidationException($errors);
+        }
+
+        return $ship;
+    }
+
     /** @return array<int, array<string, mixed>> Bestellungen eines Nutzers, neueste zuerst */
     public function listForUser(int $userId): array
     {
@@ -153,6 +214,7 @@ final class OrderRepository
 
     /**
      * Storniert eine eigene, noch nicht gelieferte Bestellung und entfernt ihre Buchungen.
+     * Das Basis-Set laesst sich nicht stornieren, es gehoert zum Abo.
      *
      * @return bool false, wenn die Bestellung nicht existiert, einem anderen Nutzer gehoert oder schon geliefert ist
      */
@@ -161,10 +223,11 @@ final class OrderRepository
         $this->pdo->beginTransaction();
         try {
             $statement = $this->pdo->prepare(
-                'UPDATE orders SET status = :cancelled WHERE id = :id AND user_id = :u AND status = :open'
+                'UPDATE orders SET status = :cancelled WHERE id = :id AND user_id = :u AND status = :open AND product != :base'
             );
             $statement->execute([
                 'cancelled' => self::STATUS_CANCELLED, 'id' => $orderId, 'u' => $userId, 'open' => self::STATUS_OPEN,
+                'base' => Catalog::BASE_PRODUCT_ID,
             ]);
             $cancelled = $statement->rowCount() === 1;
 

@@ -33,6 +33,9 @@ final class Catalog
     public const MAX_SAVINGS_PERCENT = 30.0;
 
     /** Produkt-ID => Anzahl, im Basis-Abo enthalten (zusaetzlich zu Hub, App und Support) */
+    // Kennung der Bestellung des Basis-Sets (Hub plus BASE_INCLUDED); kein Produkt zum Dazubuchen
+    public const BASE_PRODUCT_ID = 'basis';
+
     public const BASE_INCLUDED = ['led' => 2, 'steckdose' => 1, 'bewegung' => 1];
 
     /**
@@ -64,6 +67,27 @@ final class Catalog
     public static function maxSavings(float $oldMonthlyCost): float
     {
         return $oldMonthlyCost <= 0.0 ? 0.0 : round($oldMonthlyCost * self::MAX_SAVINGS_PERCENT / 100, 2);
+    }
+
+    // Anzeigename fuer Produkte und das Basis-Set (Bestellungen koennen beides enthalten)
+    public static function productName(string $productId): string
+    {
+        if ($productId === self::BASE_PRODUCT_ID) {
+            return 'Basis-Set';
+        }
+
+        return self::PRODUCTS[$productId]['name'] ?? $productId;
+    }
+
+    // Was im Basis-Set steckt, zum Packen: Hub plus BASE_INCLUDED
+    public static function baseSetContents(): string
+    {
+        $parts = ['Hub'];
+        foreach (self::BASE_INCLUDED as $productId => $count) {
+            $parts[] = $count . '× ' . self::PRODUCTS[$productId]['name'];
+        }
+
+        return implode(', ', $parts);
     }
 
     public static function exists(string $productId): bool

@@ -146,6 +146,10 @@ pageStart('Meine Wohnung', $user);
 ?>
 <h1>Meine Wohnung</h1>
 
+<?php if (!$orders->hasBaseOrder($user->id)): ?>
+    <p class="hinweis">Dein Basis-Set (<?= e(Catalog::baseSetContents()) ?>) ist noch nicht bestellt. <a href="basis-set.php">Lieferadresse angeben</a></p>
+<?php endif; ?>
+
 <section class="werte" aria-label="Zusammenfassung">
     <div><span class="zahl"><?= e(number_format($dashboard->getMonthlyConsumptionKwh(), 1, ',', '.')) ?> kWh</span><span class="bez">Verbrauch pro Monat</span></div>
     <div><span class="zahl"><?= e(euro($dashboard->getNewMonthlyCost())) ?></span><span class="bez">Stromkosten bei <?= e(number_format($user->pricePerKwh, 2, ',', '.')) ?> €/kWh</span></div>
@@ -403,12 +407,14 @@ pageStart('Meine Wohnung', $user);
             <?php foreach ($orderList as $order): ?>
                 <li>
                     <span>
-                        <?= e($order['quantity']) ?>× <?= e(Catalog::PRODUCTS[$order['product']]['name'] ?? $order['product']) ?>
+                        <?= e($order['quantity']) ?>× <?= e(Catalog::productName($order['product'])) ?>
                         <span class="status <?= e($order['status']) ?>"><?= e($order['status']) ?></span>
-                        <span class="klein"><?= e(euro($order['monthlyPrice'] * $order['quantity'])) ?> pro Monat ab Monat <?= e($order['startMonth']) ?>
+                        <span class="klein"><?= $order['product'] === Catalog::BASE_PRODUCT_ID
+                                ? e(Catalog::baseSetContents()) . ' · Teil deines Abos'
+                                : e(euro($order['monthlyPrice'] * $order['quantity'])) . ' pro Monat ab Monat ' . e($order['startMonth']) ?>
                             · Lieferung an <?= e($order['name']) ?>, <?= e($order['street']) ?>, <?= e($order['zip']) ?> <?= e($order['city']) ?></span>
                     </span>
-                    <?php if ($order['status'] === 'offen'): ?>
+                    <?php if ($order['status'] === 'offen' && $order['product'] !== Catalog::BASE_PRODUCT_ID): ?>
                         <form method="post">
                             <?= csrfField() ?>
                             <input type="hidden" name="action" value="cancel_order">
