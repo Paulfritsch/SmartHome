@@ -22,6 +22,16 @@ final class Catalog
 
     public const MAX_BOOKINGS_PER_USER = 20;
 
+    /**
+     * Ersparnis durch Verbrauchsanzeige (Hub und App) in Prozent der Energiekosten. Der Wert stammt aus dem
+     * Feldversuch Intelliekon (Fraunhofer ISE/ISI, ueber 2.000 Haushalte in Deutschland und Oesterreich):
+     * 3,7 % weniger Stromverbrauch durch zeitnahe Verbrauchsinformation. Konservativer Ansatz fuer die Demo.
+     */
+    public const BASE_SAVING_PERCENT = 3.7;
+
+    /** Obergrenze fuer die gesamte geschaetzte Ersparnis in Prozent der bisherigen Energiekosten */
+    public const MAX_SAVINGS_PERCENT = 30.0;
+
     /** Produkt-ID => Anzahl, im Basis-Abo enthalten (zusaetzlich zu Hub, App und Support) */
     public const BASE_INCLUDED = ['led' => 2, 'steckdose' => 1, 'bewegung' => 1];
 
@@ -44,6 +54,17 @@ final class Catalog
         'fenster' => ['name' => 'Tür-/Fenstersensor', 'description' => 'Meldet offene Fenster, Heizung kann reagieren', 'total' => 16.00, 'saving' => 1.0, 'maxUseful' => 4],
         'thermostat' => ['name' => 'Heizkörperthermostat', 'description' => 'Regelt die Heizung nach Zeitplan', 'total' => 48.00, 'saving' => 3.0, 'maxUseful' => 4],
     ];
+
+    // Ersparnis durch Hub und App (Verbrauchsanzeige), unabhaengig von Geraeten und Zeitplaenen
+    public static function baseSaving(float $oldMonthlyCost): float
+    {
+        return $oldMonthlyCost <= 0.0 ? 0.0 : round($oldMonthlyCost * self::BASE_SAVING_PERCENT / 100, 2);
+    }
+
+    public static function maxSavings(float $oldMonthlyCost): float
+    {
+        return $oldMonthlyCost <= 0.0 ? 0.0 : round($oldMonthlyCost * self::MAX_SAVINGS_PERCENT / 100, 2);
+    }
 
     public static function exists(string $productId): bool
     {

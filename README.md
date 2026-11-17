@@ -58,7 +58,7 @@ Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://loca
    Enthalten sind Hub, App, Support, 2× smarte LED, 1× smarte Steckdose und 1× Bewegungsmelder.
    Weitere Technik lässt sich dazubuchen. Ihr Preis ist ein Gesamtpreis über 24 Monate und verteilt sich
    auf die Restlaufzeit (später gebucht = höhere Monatsrate; unter 6 Monaten Restlaufzeit nicht mehr buchbar).
-   Das Dashboard zeigt: Ersparnis bei den Stromkosten minus Grundgebühr minus Zusatztechnik = effektiv gespart
+   Das Dashboard zeigt: geschätzte Ersparnis (Verbrauchsanzeige 3,7 % nach dem Feldversuch Intelliekon von Fraunhofer ISE/ISI, plus Zeitpläne, plus Zusatztechnik, höchstens 30 % der Stromkosten) minus Grundgebühr minus Zusatztechnik = effektiv gespart
    pro Monat, dazu bisher Gespartes, Prognose für 24 Monate und „danach gehört dir alles“.
    Ein Demo-Zeitraffer springt in der Laufzeit vor, damit man nicht 24 Monate warten muss.
    Preise und Produkte stehen zentral in `prototype/src/Catalog.php` (Kalkulation als Kommentar).

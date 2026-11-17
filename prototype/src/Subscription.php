@@ -14,11 +14,13 @@ final class Subscription
      * @param array<int, array{startMonth: int, monthlyPrice: float, monthlySaving?: float}> $bookings gebuchte Zusatztechnik
      *        (monthlySaving: Ersparnis dieser Technik pro Monat, siehe Catalog::withSavings)
      * @param int $monthsElapsed vergangene Monate der Laufzeit (0 bis 24)
+     * @param float|null $maxMonthlySavings Obergrenze fuer die gesamte Ersparnis pro Monat (null = keine)
      */
     public function __construct(
         private readonly float $monthlySavings,
         private readonly array $bookings,
-        private readonly int $monthsElapsed
+        private readonly int $monthsElapsed,
+        private readonly ?float $maxMonthlySavings = null
     ) {
     }
 
@@ -80,7 +82,18 @@ final class Subscription
     // Gesamte Ersparnis im Monat $month: Strom-Ersparnis aus dem Dashboard plus Zusatztechnik
     public function savingsForMonth(int $month): float
     {
-        return round($this->monthlySavings + $this->extraSavingsForMonth($month), 2);
+        $sum = $this->monthlySavings + $this->extraSavingsForMonth($month);
+        if ($this->maxMonthlySavings !== null) {
+            $sum = min($sum, $this->maxMonthlySavings);
+        }
+
+        return round($sum, 2);
+    }
+
+    // Wie viel Ersparnis die Obergrenze im laufenden Monat abschneidet (0, wenn sie nicht greift)
+    public function currentCapReduction(): float
+    {
+        return round($this->monthlySavings + $this->currentExtraSavings() - $this->currentSavings(), 2);
     }
 
     public function currentExtraSavings(): float

@@ -133,7 +133,13 @@ $now = new DateTimeImmutable('now');
 $bookingList = Catalog::withSavings($bookings->listForUser($user->id), $user->oldMonthlyCost);
 $ownedUnits = array_count_values(array_column($bookingList, 'product'));
 $orderList = $orders->listForUser($user->id);
-$subscription = new Subscription($dashboard->getSavings(), $bookingList, $user->monthsElapsed);
+// Geschaetzte Ersparnis: Verbrauchsanzeige (Hub, App) plus eigene Zeitplaene; Zusatztechnik rechnet das Abo dazu
+$subscription = new Subscription(
+    Catalog::baseSaving($user->oldMonthlyCost) + $dashboard->getScheduleSavings(),
+    $bookingList,
+    $user->monthsElapsed,
+    Catalog::maxSavings($user->oldMonthlyCost)
+);
 $month = $subscription->monthsElapsed();
 
 pageStart('Meine Wohnung', $user);
@@ -143,7 +149,7 @@ pageStart('Meine Wohnung', $user);
 <section class="werte" aria-label="Zusammenfassung">
     <div><span class="zahl"><?= e(number_format($dashboard->getMonthlyConsumptionKwh(), 1, ',', '.')) ?> kWh</span><span class="bez">Verbrauch pro Monat</span></div>
     <div><span class="zahl"><?= e(euro($dashboard->getNewMonthlyCost())) ?></span><span class="bez">Stromkosten bei <?= e(number_format($user->pricePerKwh, 2, ',', '.')) ?> €/kWh</span></div>
-    <div class="gewinn"><span class="zahl"><?= e(euro($dashboard->getSavings())) ?></span><span class="bez">Ersparnis gegenüber heute (<?= e(euro($user->oldMonthlyCost)) ?>)</span></div>
+    <div class="gewinn"><span class="zahl"><?= e(euro($subscription->currentSavings())) ?></span><span class="bez">geschätzte Ersparnis pro Monat (Stromkosten heute <?= e(euro($user->oldMonthlyCost)) ?>)</span></div>
     <div><span class="zahl"><?= e(euro($dashboard->getScheduleSavings())) ?></span><span class="bez">davon durch Zeitpläne pro Monat (<?= e(number_format($dashboard->getScheduleSavingsKwh(), 1, ',', '.')) ?> kWh)</span></div>
     <div><span class="zahl"><?= e(number_format($dashboard->getCurrentPowerKwAt($now) * 1000, 0, ',', '.')) ?> W</span><span class="bez">Leistung jetzt (<?= e($now->format('H:i')) ?> Uhr)</span></div>
 </section>
@@ -154,9 +160,12 @@ pageStart('Meine Wohnung', $user);
         <div>
             <p class="klein">Pro Monat</p>
             <dl class="rechnung">
-                <div><dt>Ersparnis bei den Stromkosten</dt><dd><?= e(signedEuro($subscription->monthlySavings())) ?></dd></div>
+                <div><dt>Ersparnis durch Verbrauchsanzeige und Zeitpläne</dt><dd><?= e(signedEuro($subscription->monthlySavings())) ?></dd></div>
                 <?php if ($subscription->currentExtraSavings() > 0): ?>
                     <div><dt>Ersparnis durch Zusatztechnik</dt><dd><?= e(signedEuro($subscription->currentExtraSavings())) ?></dd></div>
+                <?php endif; ?>
+                <?php if ($subscription->currentCapReduction() > 0): ?>
+                    <div><dt>Abzug: höchstens <?= e(number_format(Catalog::MAX_SAVINGS_PERCENT, 0)) ?> % der Stromkosten</dt><dd><?= e(signedEuro(-$subscription->currentCapReduction())) ?></dd></div>
                 <?php endif; ?>
                 <div><dt>Abo-Grundgebühr</dt><dd><?= e(signedEuro($subscription->isFinished() ? 0.0 : -Catalog::BASE_MONTHLY_FEE)) ?></dd></div>
                 <div><dt>Zusatztechnik</dt><dd><?= e(signedEuro(-$subscription->currentExtras())) ?></dd></div>
@@ -434,7 +443,7 @@ pageStart('Meine Wohnung', $user);
             <input id="old_cost" name="old_cost" inputmode="decimal" value="<?= e(number_format($user->oldMonthlyCost, 2, ',', '')) ?>" required>
             <button type="submit">Speichern</button>
         </form>
-        <p class="klein">Ersparnis = Energiekosten heute minus berechnete Kosten der eingeschalteten Geräte. Zeitpläne zählen nur, wenn abends (ab 18 Uhr, Schlaf) oder morgens (4 bis 11 Uhr, Arbeit) ausgeschaltet wird, mit höchstens 8 Stunden pro Tag und nie mehr, als das Gerät täglich läuft. Bei Steckdosen zählt nichts, bei sonstigen Geräten nur der Standby-Anteil (10 %). Alles ist eine Simulation mit angenommenen Werten.</p>
+        <p class="klein">Geschätzte Ersparnis = Verbrauchsanzeige durch Hub und App (<?= e(number_format(Catalog::BASE_SAVING_PERCENT, 1, ',', '')) ?> % der Energiekosten, nach dem Feldversuch Intelliekon von Fraunhofer ISE/ISI) plus Zeitpläne plus Zusatztechnik, höchstens <?= e(number_format(Catalog::MAX_SAVINGS_PERCENT, 0)) ?> %. Der Verbrauch der angelegten Geräte dient der Anzeige und fließt nicht in die Ersparnis ein. Zeitpläne zählen nur, wenn abends (ab 18 Uhr, Schlaf) oder morgens (4 bis 11 Uhr, Arbeit) ausgeschaltet wird, mit höchstens 8 Stunden pro Tag und nie mehr, als das Gerät täglich läuft. Bei Steckdosen zählt nichts, bei sonstigen Geräten nur der Standby-Anteil (10 %). Alles ist eine Simulation mit angenommenen Werten.</p>
     </section>
 </div>
 <?php

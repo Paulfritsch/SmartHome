@@ -191,4 +191,31 @@ final class SubscriptionTest extends TestCase
 
         $this->assertLessThan(30.0, $sum);
     }
+
+    public function testCapLimitsTheTotalSavingsButNotTheFees(): void
+    {
+        $bookings = [['startMonth' => 0, 'monthlyPrice' => 2.0, 'monthlySaving' => 5.0]];
+        $subscription = new Subscription(8.0, $bookings, 0, 10.0);
+
+        $this->assertSame(10.0, $subscription->currentSavings());
+        $this->assertSame(3.0, $subscription->currentCapReduction());
+        $this->assertSame(2.01, $subscription->effectiveMonthly()); // 10 - 5,99 - 2
+        $this->assertSame(240.0, $subscription->totalSavings24());
+    }
+
+    public function testCapDoesNotReduceAnythingBelowTheLimit(): void
+    {
+        $subscription = new Subscription(8.0, [], 0, 10.0);
+
+        $this->assertSame(8.0, $subscription->currentSavings());
+        $this->assertSame(0.0, $subscription->currentCapReduction());
+    }
+
+    public function testBaseSavingIsAPercentageOfTheEnergyCost(): void
+    {
+        $this->assertSame(2.96, Catalog::baseSaving(80.0));   // 3,7 %
+        $this->assertSame(0.0, Catalog::baseSaving(0.0));
+        $this->assertSame(0.0, Catalog::baseSaving(-5.0));
+        $this->assertSame(24.0, Catalog::maxSavings(80.0));   // 30 %
+    }
 }
