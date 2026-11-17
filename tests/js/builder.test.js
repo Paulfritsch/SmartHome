@@ -9,7 +9,7 @@ test("Komponenten können hinzugefügt und einzeln entfernt werden", () => {
     builder.addKomponente("led").addKomponente("led");
 
     assert.equal(builder.build().komponenten.length, 2);
-    assert.equal(builder.build().monatspreis, 2.38);
+    assert.equal(builder.build().monatspreis, 6.99); // 5,99 € Basis + 2 × 0,50 €
 
     builder.build().removeKomponente("led");
     assert.equal(builder.build().komponenten.length, 1);
@@ -19,19 +19,19 @@ test("Starter-Paket enthält die erwarteten Komponenten und Preise", () => {
     const builder = new SmartHomePaketBuilder();
     const paket = new PaketKonfigurator(builder).buildStarterPaket();
 
-    assert.deepEqual(paket.komponenten.map(komponente => komponente.id), ["led", "led", "bewegung"]);
-    assert.equal(paket.monatspreis, 4.17);
-    assert.equal(paket.ersparnisProzent, 7);
-    assert.equal(paket.berechneErsparnis(120), 8.4);
+    assert.deepEqual(paket.komponenten, []); // nur das Basis-Abo
+    assert.equal(paket.monatspreis, 5.99);
+    assert.equal(paket.ersparnisProzent, 11); // 2 LED, Steckdose, Bewegungsmelder im Basis-Abo
+    assert.equal(paket.berechneErsparnis(120), 13.2);
 });
 
 test("Komfort-Paket enthält die erwarteten Komponenten und Preise", () => {
     const builder = new SmartHomePaketBuilder();
     const paket = new PaketKonfigurator(builder).buildKomfortPaket();
 
-    assert.equal(paket.komponenten.length, 7);
-    assert.equal(paket.monatspreis, 11.33);
-    assert.equal(paket.ersparnisProzent, 19);
+    assert.equal(paket.komponenten.length, 4); // zusaetzlich zum Basis-Abo
+    assert.equal(paket.monatspreis, 8.57);
+    assert.equal(paket.ersparnisProzent, 23);
 });
 
 test("Ersparnis wird bei 30 Prozent gedeckelt", () => {

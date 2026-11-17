@@ -40,6 +40,15 @@ function renderWarenkorb() {
         else gruppen.set(komponente.id, { komponente, anzahl: 1 });
     });
 
+    const basis = document.createElement("li");
+    const basisName = document.createElement("span");
+    const basisPreis = document.createElement("span");
+    basisName.textContent = "Basis-Abo (Hub, App, Support, 2× LED, Steckdose, Bewegungsmelder)";
+    basisPreis.className = "betrag";
+    basisPreis.textContent = formatiereEuro(BASIS_GEBUEHR);
+    basis.append(basisName, basisPreis);
+    liste.appendChild(basis);
+
     gruppen.forEach(({ komponente, anzahl }) => {
         const eintrag = document.createElement("li");
         const name = document.createElement("span");
@@ -51,9 +60,6 @@ function renderWarenkorb() {
         liste.appendChild(eintrag);
     });
 
-    const istLeer = paket.komponenten.length === 0;
-    document.getElementById("leer-hinweis").hidden = !istLeer;
-    document.getElementById("bestellen-btn").disabled = istLeer;
     document.getElementById("energiekosten").textContent = formatiereEuro(energiekosten);
     document.getElementById("ersparnis").textContent = `+${formatiereEuro(ersparnis)}`;
     document.getElementById("abokosten").textContent = `−${formatiereEuro(paket.monatspreis)}`;

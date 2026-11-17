@@ -113,9 +113,7 @@ function aktualisiereBerechnung() {
         `${(paket.ersparnisProzent / MAX_ERSPARNIS_PROZENT) * 100}%`;
 
     let satz;
-    if (paket.komponenten.length === 0) {
-        satz = "Wähle eine Komponente, dann siehst du hier, was das Abo kostet und was es spart.";
-    } else if (differenz >= 0) {
+    if (differenz >= 0) {
         satz = `Unterm Strich bleiben dir ${formatiereEuro(differenz)} im Monat.`;
     } else {
         const eigenanteil = -differenz;
@@ -130,10 +128,18 @@ function renderPaket(geaendertId = null) {
     const weiterBtn = document.getElementById("weiter-btn");
 
     liste.replaceChildren();
+    const basis = document.createElement("li");
+    const basisName = document.createElement("span");
+    const basisBetrag = document.createElement("span");
+    basisName.textContent = "Basis-Abo (Hub, App, Support, 2× LED, Steckdose, Bewegungsmelder)";
+    basisBetrag.className = "betrag";
+    basisBetrag.textContent = formatiereEuro(BASIS_GEBUEHR);
+    basis.append(basisName, basisBetrag);
+    liste.appendChild(basis);
     if (paket.komponenten.length === 0) {
         const leer = document.createElement("li");
         leer.className = "leer-hinweis";
-        leer.textContent = "Noch nichts ausgewählt. Wähle links eine Komponente oder lade eine Vorlage.";
+        leer.textContent = "Wähle links Zusatztechnik, wenn dir das Basis-Abo nicht reicht.";
         liste.appendChild(leer);
     } else {
         gruppiere(paket.komponenten).forEach(({ komponente, anzahl }) => {
@@ -156,7 +162,7 @@ function renderPaket(geaendertId = null) {
     }
 
     document.getElementById("gesamtpreis").textContent = formatiereEuro(paket.monatspreis);
-    weiterBtn.disabled = paket.komponenten.length === 0;
+    weiterBtn.disabled = false;
     aktualisiereBerechnung();
 }
 

@@ -1,6 +1,11 @@
 const MAX_ERSPARNIS_PROZENT = 30;
 const LAUFZEIT_MONATE = 24;
 
+// Basis-Abo wie im PHP-Prototyp (prototype/src/Catalog.php): Grundgebuehr inkl. Hub, App, Support
+// und diesen Komponenten. Alles, was man zusaetzlich waehlt, kommt oben drauf.
+const BASIS_GEBUEHR = 5.99;
+const BASIS_ENTHALTEN = ["led", "led", "steckdose", "bewegung"];
+
 //Product
 
 class SmartHomePaket {
@@ -18,12 +23,13 @@ class SmartHomePaket {
     }
 
     get monatspreis() {
-        const summe = this.komponenten.reduce((zwischenstand, k) => zwischenstand + k.preis, 0);
+        const summe = this.komponenten.reduce((zwischenstand, k) => zwischenstand + k.preis, BASIS_GEBUEHR);
         return Math.round(summe * 100) / 100;
     }
 
     get ersparnisProzent() {
-        const prozent = this.komponenten.reduce((summe, k) => summe + k.ersparnisProzent, 0);
+        const alle = [...BASIS_ENTHALTEN.map(id => KOMPONENTEN.find(k => k.id === id)), ...this.komponenten];
+        const prozent = alle.reduce((summe, k) => summe + k.ersparnisProzent, 0);
         return Math.min(prozent, MAX_ERSPARNIS_PROZENT);
     }
 
@@ -64,22 +70,20 @@ class PaketKonfigurator {
         this.builder = builder;
     }
 
+    // Starter = nur das Basis-Abo
     buildStarterPaket() {
-        return this.builder
-            .addKomponente("led").addKomponente("led")
-            .addKomponente("bewegung")
-            .build();
+        return this.builder.build();
     }
 
     buildKomfortPaket() {
         return this.builder
-            .addKomponente("led").addKomponente("led").addKomponente("led").addKomponente("led")
-            .addKomponente("bewegung").addKomponente("bewegung")
+            .addKomponente("led").addKomponente("led")
+            .addKomponente("bewegung")
             .addKomponente("temperatur")
             .build();
     }
 }
 
 if (typeof module !== "undefined") {
-    module.exports = { SmartHomePaket, PaketBuilder, SmartHomePaketBuilder, PaketKonfigurator, MAX_ERSPARNIS_PROZENT, LAUFZEIT_MONATE };
+    module.exports = { SmartHomePaket, PaketBuilder, SmartHomePaketBuilder, PaketKonfigurator, MAX_ERSPARNIS_PROZENT, LAUFZEIT_MONATE, BASIS_GEBUEHR, BASIS_ENTHALTEN };
 }

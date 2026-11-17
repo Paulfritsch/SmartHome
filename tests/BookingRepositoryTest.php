@@ -36,7 +36,7 @@ final class BookingRepositoryTest extends TestCase
         $this->assertCount(1, $list);
         $this->assertSame('thermostat', $list[0]['product']);
         $this->assertSame(12, $list[0]['startMonth']);
-        $this->assertSame(4.98, $list[0]['monthlyPrice']);
+        $this->assertSame(4.0, $list[0]['monthlyPrice']);
     }
 
     public function testPriceStaysFixedWhenTimeMovesOn(): void
@@ -44,7 +44,7 @@ final class BookingRepositoryTest extends TestCase
         $this->bookings->book($this->anna, 'led', 0);
         $this->users->setMonthsElapsed($this->anna, 20);
 
-        $this->assertSame(0.69, $this->bookings->listForUser($this->anna)[0]['monthlyPrice']);
+        $this->assertSame(0.5, $this->bookings->listForUser($this->anna)[0]['monthlyPrice']);
     }
 
     public function testUnknownProductIsRejected(): void

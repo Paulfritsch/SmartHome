@@ -14,19 +14,19 @@ final class SubscriptionTest extends TestCase
     {
         $subscription = new Subscription(15.0, [], 0);
 
-        $this->assertSame(6.99, $subscription->currentFee());
-        $this->assertSame(8.01, $subscription->effectiveMonthly());
+        $this->assertSame(5.99, $subscription->currentFee());
+        $this->assertSame(9.01, $subscription->effectiveMonthly());
         $this->assertSame(0.0, $subscription->effectiveSoFar());
         $this->assertSame(360.0, $subscription->totalSavings24());
-        $this->assertSame(167.76, $subscription->totalFees24());
-        $this->assertSame(192.24, $subscription->totalEffective24());
+        $this->assertSame(143.76, $subscription->totalFees24());
+        $this->assertSame(216.24, $subscription->totalEffective24());
         $this->assertSame(24, $subscription->remainingMonths());
     }
 
     public function testEffectiveSoFarGrowsWithElapsedMonths(): void
     {
-        $this->assertSame(48.06, (new Subscription(15.0, [], 6))->effectiveSoFar());   // 6 * 8,01
-        $this->assertSame(192.24, (new Subscription(15.0, [], 24))->effectiveSoFar());
+        $this->assertSame(54.06, (new Subscription(15.0, [], 6))->effectiveSoFar());   // 6 * 9,01
+        $this->assertSame(216.24, (new Subscription(15.0, [], 24))->effectiveSoFar());
     }
 
     public function testExtrasRaiseTheFeeFromTheirStartMonth(): void
@@ -37,13 +37,13 @@ final class SubscriptionTest extends TestCase
         ];
         $subscription = new Subscription(15.0, $bookings, 0);
 
-        $this->assertSame(7.68, $subscription->feeForMonth(0));
-        $this->assertSame(7.68, $subscription->feeForMonth(11));
-        $this->assertSame(12.66, $subscription->feeForMonth(12));
-        $this->assertSame(12.66, $subscription->feeForMonth(23));
-        // 12 * 7,68 + 12 * 12,66 = 244,08
-        $this->assertSame(244.08, $subscription->totalFees24());
-        $this->assertSame(115.92, $subscription->totalEffective24());
+        $this->assertSame(6.68, $subscription->feeForMonth(0));
+        $this->assertSame(6.68, $subscription->feeForMonth(11));
+        $this->assertSame(11.66, $subscription->feeForMonth(12));
+        $this->assertSame(11.66, $subscription->feeForMonth(23));
+        // 12 * 6,68 + 12 * 11,66 = 220,08
+        $this->assertSame(220.08, $subscription->totalFees24());
+        $this->assertSame(139.92, $subscription->totalEffective24());
     }
 
     public function testNoFeesAfterTheTermAndEverythingBelongsToTheUser(): void
@@ -61,8 +61,8 @@ final class SubscriptionTest extends TestCase
     {
         $subscription = new Subscription(4.0, [], 3);
 
-        $this->assertSame(-2.99, $subscription->effectiveMonthly());
-        $this->assertSame(-8.97, $subscription->effectiveSoFar());
+        $this->assertSame(-1.99, $subscription->effectiveMonthly());
+        $this->assertSame(-5.97, $subscription->effectiveSoFar());
     }
 
     public function testMonthsElapsedIsClamped(): void
@@ -76,16 +76,16 @@ final class SubscriptionTest extends TestCase
         // Zeitraffer zurueck auf Monat 0, obwohl die Buchung erst ab Monat 10 gilt
         $subscription = new Subscription(15.0, [['startMonth' => 10, 'monthlyPrice' => 5.0]], 0);
 
-        $this->assertSame(6.99, $subscription->currentFee());
+        $this->assertSame(5.99, $subscription->currentFee());
         $this->assertSame(0.0, $subscription->currentExtras());
     }
 
     public function testCatalogMonthlyPriceSpreadsTotalOverRemainingMonths(): void
     {
-        $this->assertSame(0.69, Catalog::monthlyPrice('led', 0));          // 16,56 / 24
-        $this->assertSame(1.38, Catalog::monthlyPrice('led', 12));         // 16,56 / 12
-        $this->assertSame(4.98, Catalog::monthlyPrice('thermostat', 12));  // 59,76 / 12
-        $this->assertSame(2.49, Catalog::monthlyPrice('thermostat', 0));
+        $this->assertSame(0.5, Catalog::monthlyPrice('led', 0));          // 12 / 24
+        $this->assertSame(1.0, Catalog::monthlyPrice('led', 12));         // 12 / 12
+        $this->assertSame(4.0, Catalog::monthlyPrice('thermostat', 12));  // 48 / 12
+        $this->assertSame(2.0, Catalog::monthlyPrice('thermostat', 0));
     }
 
     public function testCatalogBookingWindow(): void

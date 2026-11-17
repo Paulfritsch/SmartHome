@@ -44,7 +44,7 @@ final class OrderRepositoryTest extends TestCase
         $this->assertCount(1, $list);
         $this->assertSame($id, $list[0]['id']);
         $this->assertSame('offen', $list[0]['status']);
-        $this->assertSame(4.98, $list[0]['monthlyPrice']);
+        $this->assertSame(4.0, $list[0]['monthlyPrice']);
         $this->assertSame(12, $list[0]['startMonth']);
         $this->assertSame('vor_ort', $list[0]['paymentMethod']);
         $this->assertSame('Hauptstraße 1', $list[0]['street']);

@@ -15,7 +15,7 @@ final class Catalog
     public const TERM_MONTHS = 24;
 
     // Grundgebuehr pro Monat: Hub, App, Support und die Basis-Technik (siehe BASE_INCLUDED)
-    public const BASE_MONTHLY_FEE = 6.99;
+    public const BASE_MONTHLY_FEE = 5.99;
 
     // Weniger als so viele Monate Restlaufzeit: nichts mehr dazubuchbar
     public const MIN_REMAINING_MONTHS = 6;
@@ -32,12 +32,12 @@ final class Catalog
      * @var array<string, array{name: string, description: string, total: float}>
      */
     public const PRODUCTS = [
-        'led' => ['name' => 'Smarte LED-Lampe', 'description' => 'Dimmbar, per App und Zeitplan schaltbar', 'total' => 16.56],
-        'steckdose' => ['name' => 'Smarte Steckdose', 'description' => 'Schaltet Geräte und misst den Verbrauch', 'total' => 26.16],
-        'bewegung' => ['name' => 'Bewegungsmelder', 'description' => 'Schaltet Licht und Geräte bei Bewegung', 'total' => 33.36],
-        'temperatur' => ['name' => 'Temperatursensor', 'description' => 'Misst Temperatur und Luftfeuchte', 'total' => 18.96],
-        'fenster' => ['name' => 'Tür-/Fenstersensor', 'description' => 'Meldet offene Fenster, Heizung kann reagieren', 'total' => 21.36],
-        'thermostat' => ['name' => 'Heizkörperthermostat', 'description' => 'Regelt die Heizung nach Zeitplan', 'total' => 59.76],
+        'led' => ['name' => 'Smarte LED-Lampe', 'description' => 'Dimmbar, per App und Zeitplan schaltbar', 'total' => 12.00],
+        'steckdose' => ['name' => 'Smarte Steckdose', 'description' => 'Schaltet Geräte und misst den Verbrauch', 'total' => 20.00],
+        'bewegung' => ['name' => 'Bewegungsmelder', 'description' => 'Schaltet Licht und Geräte bei Bewegung', 'total' => 24.00],
+        'temperatur' => ['name' => 'Temperatursensor', 'description' => 'Misst Temperatur und Luftfeuchte', 'total' => 14.00],
+        'fenster' => ['name' => 'Tür-/Fenstersensor', 'description' => 'Meldet offene Fenster, Heizung kann reagieren', 'total' => 16.00],
+        'thermostat' => ['name' => 'Heizkörperthermostat', 'description' => 'Regelt die Heizung nach Zeitplan', 'total' => 48.00],
     ];
 
     public static function exists(string $productId): bool
