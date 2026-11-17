@@ -102,6 +102,18 @@ function nettoText(float $saving, float $price): string
         : 'Spart ca. ' . euro($saving) . ' pro Monat, kostet aber ' . euro($price) . ': ' . signedEuro($net) . ' pro Monat netto.';
 }
 
+// Auswahl des Pakets (Starter oder Komfort) als Radiobuttons; nichts ist vorausgewaehlt, ausser $selected
+function modelChoice(string $selected = ''): void
+{
+    echo '<fieldset><legend>Dein Paket</legend>';
+    foreach (\SmartSave\Catalog::MODELS as $id => $model) {
+        echo '<label class="zahlart"><input type="radio" name="model" value="' . e($id) . '"' . ($selected === $id ? ' checked' : '') . ' required> <span><strong>'
+            . e($model['name']) . ': ' . e(euro(\SmartSave\Catalog::modelMonthlyPrice($id))) . ' pro Monat</strong><br><span class="klein">'
+            . e($model['description']) . '</span></span></label>';
+    }
+    echo '<p class="klein">Beide Pakete enthalten ' . e(\SmartSave\Catalog::baseSetContents()) . '. Mehr kannst du später dazubuchen.</p></fieldset>';
+}
+
 /** Zeitstempel aus SQLite (UTC) als deutsche Ortszeit. */
 function berlinTime(string $utc): string
 {

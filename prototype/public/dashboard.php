@@ -147,7 +147,7 @@ pageStart('Meine Wohnung', $user);
 <h1>Meine Wohnung</h1>
 
 <?php if (!$orders->hasBaseOrder($user->id)): ?>
-    <p class="hinweis">Dein Basis-Set (<?= e(Catalog::baseSetContents()) ?>) ist noch nicht bestellt. <a href="basis-set.php">Lieferadresse angeben</a></p>
+    <p class="hinweis">Du hast noch kein Paket gewählt. <a href="basis-set.php">Paket wählen und Lieferadresse angeben</a></p>
 <?php endif; ?>
 
 <section class="werte" aria-label="Zusammenfassung">

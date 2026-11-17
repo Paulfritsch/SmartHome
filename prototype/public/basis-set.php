@@ -7,7 +7,7 @@ require __DIR__ . '/_bootstrap.php';
 use SmartSave\Catalog;
 use SmartSave\ValidationException;
 
-// Fuer Konten ohne Basis-Set-Bestellung (z. B. vor der Einfuehrung der Lieferadresse angelegt)
+// Fuer Konten ohne Paket-Bestellung (z. B. vor der Einfuehrung der Lieferadresse angelegt)
 $user = requireUser($users);
 
 if ($orders->hasBaseOrder($user->id)) {
@@ -15,28 +15,30 @@ if ($orders->hasBaseOrder($user->id)) {
     redirect('dashboard.php');
 }
 
-$form = ['name' => $user->name, 'street' => '', 'zip' => '', 'city' => ''];
+$form = ['name' => $user->name, 'model' => '', 'street' => '', 'zip' => '', 'city' => ''];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf();
     foreach (array_keys($form) as $key) {
         $form[$key] = is_string($_POST[$key] ?? null) ? $_POST[$key] : '';
     }
     try {
-        $orders->placeBase($user, $form);
-        flash('ok', ['Basis-Set bestellt. Wir liefern an ' . trim($form['street']) . ', ' . trim($form['zip']) . ' ' . trim($form['city']) . ', bezahlt wird vor Ort.']);
+        $orders->placeModel($user, $form['model'], $form);
+        flash('ok', ['Paket bestellt. Wir liefern an ' . trim($form['street']) . ', ' . trim($form['zip']) . ' ' . trim($form['city']) . ', bezahlt wird vor Ort.']);
         redirect('dashboard.php');
     } catch (ValidationException $e) {
         flash('fehler', $e->getErrors());
     }
 }
 
-pageStart('Basis-Set bestellen', $user);
+pageStart('Paket wählen', $user);
 ?>
 <section class="karte schmal">
-    <h1>Basis-Set bestellen</h1>
-    <p>Im Abo stecken <?= e(Catalog::baseSetContents()) ?>. Das ist Teil deiner Grundgebühr von <?= e(number_format(Catalog::BASE_MONTHLY_FEE, 2, ',', '.')) ?> € pro Monat, bezahlt wird bei der Lieferung vor Ort.</p>
+    <h1>Paket wählen</h1>
+    <p>Du hast noch kein Paket gewählt. Bezahlt wird bei der Lieferung vor Ort.</p>
     <form method="post">
         <?= csrfField() ?>
+        <?php modelChoice($form['model']); ?>
+
         <label for="name">Name</label>
         <input id="name" name="name" value="<?= e($form['name']) ?>" maxlength="60" autocomplete="name" required>
         <label for="street">Straße und Hausnummer</label>
@@ -51,7 +53,7 @@ pageStart('Basis-Set bestellen', $user);
                 <input id="city" name="city" value="<?= e($form['city']) ?>" maxlength="60" autocomplete="address-level2" required>
             </div>
         </div>
-        <button type="submit">Basis-Set bestellen</button>
+        <button type="submit">Paket bestellen</button>
     </form>
     <p class="klein"><a href="dashboard.php">Zurück zu meiner Wohnung</a></p>
 </section>

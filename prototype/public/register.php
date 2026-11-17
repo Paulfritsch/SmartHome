@@ -12,7 +12,7 @@ if (currentUser($users) !== null) {
     redirect('dashboard.php');
 }
 
-$form = ['name' => '', 'email' => '', 'price' => '', 'old_cost' => '', 'street' => '', 'zip' => '', 'city' => ''];
+$form = ['name' => '', 'email' => '', 'price' => '', 'old_cost' => '', 'model' => '', 'street' => '', 'zip' => '', 'city' => ''];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf();
     foreach (array_keys($form) as $field) {
@@ -22,9 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Adresse zuerst pruefen, damit bei einem Fehler noch kein Konto angelegt ist
+        $orders->normalizeModel($form['model']);
         $address = $orders->normalizeAddress(['name' => $form['name'], 'street' => $form['street'], 'zip' => $form['zip'], 'city' => $form['city']]);
         $user = $users->register($form['name'], $form['email'], $password, $form['price'], $form['old_cost']);
-        $orders->placeBase($user, $address);
+        $orders->placeModel($user, $form['model'], $address);
         if (isset($_POST['examples'])) {
             ExampleApartment::create($user->id, $rooms, $devices);
         }
@@ -58,9 +59,11 @@ pageStart('Konto anlegen');
         <label for="old_cost">Deine Energiekosten heute in € pro Monat <span class="klein">(optional, sonst 150 €)</span></label>
         <input id="old_cost" name="old_cost" inputmode="decimal" placeholder="150" value="<?= e($form['old_cost']) ?>">
 
+        <?php modelChoice($form['model']); ?>
+
         <fieldset>
-            <legend>Lieferadresse für dein Basis-Set</legend>
-            <p class="klein">Im Abo stecken <?= e(Catalog::baseSetContents()) ?>. Wir liefern es an <?= e($form['name'] !== '' ? $form['name'] : 'dich') ?>, bezahlt wird vor Ort.</p>
+            <legend>Lieferadresse</legend>
+            <p class="klein">Wir liefern an <?= e($form['name'] !== '' ? $form['name'] : 'dich') ?>, bezahlt wird vor Ort.</p>
             <label for="street">Straße und Hausnummer</label>
             <input id="street" name="street" value="<?= e($form['street']) ?>" maxlength="80" autocomplete="street-address" required>
             <div class="zeile">
@@ -79,7 +82,7 @@ pageStart('Konto anlegen');
 
         <button type="submit">Konto anlegen</button>
     </form>
-    <p class="klein">Mit dem Konto startet dein Demo-Abo: <?= e(number_format(\SmartSave\Catalog::BASE_MONTHLY_FEE, 2, ',', '.')) ?> € pro Monat, <?= e(\SmartSave\Catalog::TERM_MONTHS) ?> Monate Laufzeit, danach gehört dir die Technik. Es wird nichts abgebucht.</p>
+    <p class="klein">Mit dem Konto startet dein Demo-Abo: <?= e(\SmartSave\Catalog::TERM_MONTHS) ?> Monate Laufzeit zum Preis deines Pakets, danach gehört dir die Technik. Es wird nichts abgebucht.</p>
     <p class="klein">Schulprojekt: Bitte keine echten Zugangsdaten verwenden, die du anderswo benutzt.</p>
     <p class="klein">Schon ein Konto? <a href="login.php">Anmelden</a></p>
 </section>

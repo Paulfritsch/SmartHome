@@ -70,8 +70,10 @@ Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://loca
    der echte Monatspreis für die Restlaufzeit. Als Zahlungsart gibt es nur „Bezahlung vor Ort bei der Lieferung“,
    online wird nichts bezahlt. Eine Bestellung ist `offen`, bis sie geliefert oder vom Nutzer storniert wird
    (stornieren geht nur, solange sie offen ist; die Abo-Gebühr sinkt dann wieder).
-   Auch das Basis-Set (Hub, 2× LED, Steckdose, Bewegungsmelder) ist eine Bestellung: Die Lieferadresse wird schon bei
-   der Registrierung abgefragt, für ältere Konten gibt es `basis-set.php`. Das Basis-Set lässt sich nicht stornieren.
+   Bei der Registrierung wählt man ein Paket (Starter 5,99 € oder Komfort 8,57 € pro Monat, nichts ist vorausgewählt)
+   und gibt die Lieferadresse an. Daraus entstehen Bestellungen: das Basis-Set (Hub, 2× LED, Steckdose, Bewegungsmelder)
+   und beim Komfort-Paket zusätzlich 2× LED, Bewegungsmelder und Temperatursensor. Für ältere Konten ohne Paket gibt es
+   `basis-set.php`. Das Basis-Set lässt sich nicht stornieren.
 6. **Admin-Bereich für das Team:** `admin.php` zeigt offene, gelieferte und stornierte Bestellungen, eine Packliste
    und je offener Bestellung Kunde und Lieferadresse mit Button „Als geliefert markieren“. Admin wird man nur mit
    Zugriff auf den Rechner: erst normal registrieren, dann im Terminal

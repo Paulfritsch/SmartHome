@@ -121,6 +121,44 @@ final class OrderRepository
         return (int) $this->pdo->lastInsertId();
     }
 
+    /**
+     * Prueft die Paketwahl (z. B. vor dem Anlegen eines Kontos).
+     *
+     * @throws ValidationException
+     */
+    public function normalizeModel(string $modelId): string
+    {
+        if (!Catalog::modelExists($modelId)) {
+            throw new ValidationException(['Paket: bitte Starter oder Komfort wählen.']);
+        }
+
+        return $modelId;
+    }
+
+    /**
+     * Bestellt das gewaehlte Paket: das Basis-Set und je Zusatzprodukt eine Bestellung (alle an dieselbe Adresse).
+     * Prueft alles vorab, damit nichts halb bestellt wird.
+     *
+     * @param array{name?: string, street?: string, zip?: string, city?: string} $address
+     * @return int[] IDs der angelegten Bestellungen, Basis-Set zuerst
+     * @throws ValidationException
+     */
+    public function placeModel(User $user, string $modelId, array $address, string $paymentMethod = 'vor_ort'): array
+    {
+        $this->normalizeModel($modelId);
+        $this->normalizeAddress($address);
+        if ($this->hasBaseOrder($user->id)) {
+            throw new ValidationException(['Du hast dein Paket schon bestellt.']);
+        }
+
+        $ids = [$this->placeBase($user, $address, $paymentMethod)];
+        foreach (Catalog::MODELS[$modelId]['extras'] as $productId => $count) {
+            $ids[] = $this->place($user, $productId, $count, $address, $paymentMethod);
+        }
+
+        return $ids;
+    }
+
     public function hasBaseOrder(int $userId): bool
     {
         $statement = $this->pdo->prepare('SELECT COUNT(*) FROM orders WHERE user_id = :u AND product = :p');

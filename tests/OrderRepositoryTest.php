@@ -352,4 +352,79 @@ final class OrderRepositoryTest extends TestCase
             \SmartSave\Catalog::baseSetContents()
         );
     }
+
+    public function testStarterModelOrdersOnlyTheBaseSet(): void
+    {
+        $ids = $this->orders->placeModel($this->anna, 'starter', $this->address);
+
+        $this->assertCount(1, $ids);
+        $this->assertSame(['basis' => 1], $this->orders->packingList());
+        $this->assertSame([], $this->bookings->listForUser($this->anna->id));
+    }
+
+    public function testComfortModelOrdersBaseSetAndExtrasToTheSameAddress(): void
+    {
+        $ids = $this->orders->placeModel($this->anna, 'komfort', $this->address);
+
+        $this->assertCount(4, $ids);
+        $this->assertSame(['basis' => 1, 'bewegung' => 1, 'led' => 2, 'temperatur' => 1], $this->orders->packingList());
+        $this->assertCount(4, $this->bookings->listForUser($this->anna->id));
+        foreach ($this->orders->listForUser($this->anna->id) as $order) {
+            $this->assertSame('offen', $order['status']);
+            $this->assertSame('Hamburg', $order['city']);
+        }
+    }
+
+    public function testModelPricesMatchTheWebsitePackages(): void
+    {
+        $this->assertSame(5.99, \SmartSave\Catalog::modelMonthlyPrice('starter'));
+        $this->assertSame(8.57, \SmartSave\Catalog::modelMonthlyPrice('komfort'));
+    }
+
+    /** @dataProvider invalidModels */
+    public function testUnknownOrEmptyModelOrdersNothing(string $model): void
+    {
+        try {
+            $this->orders->placeModel($this->anna, $model, $this->address);
+            $this->fail('ValidationException erwartet');
+        } catch (ValidationException) {
+            $this->assertSame([], $this->orders->listForUser($this->anna->id));
+        }
+    }
+
+    /** @return array<string, array{string}> */
+    public static function invalidModels(): array
+    {
+        return ['leer' => [''], 'unbekannt' => ['premium'], 'Basis-ID' => ['basis'], 'Gross' => ['KOMFORT']];
+    }
+
+    public function testInvalidAddressOrdersNothingEvenForTheComfortModel(): void
+    {
+        try {
+            $this->orders->placeModel($this->anna, 'komfort', ['zip' => 'x'] + $this->address);
+            $this->fail('ValidationException erwartet');
+        } catch (ValidationException) {
+            $this->assertSame([], $this->orders->listForUser($this->anna->id));
+            $this->assertSame([], $this->bookings->listForUser($this->anna->id));
+        }
+    }
+
+    public function testModelCanOnlyBeChosenOnce(): void
+    {
+        $this->orders->placeModel($this->anna, 'starter', $this->address);
+
+        try {
+            $this->orders->placeModel($this->anna, 'komfort', $this->address);
+            $this->fail('ValidationException erwartet');
+        } catch (ValidationException) {
+            $this->assertCount(1, $this->orders->listForUser($this->anna->id));
+        }
+    }
+
+    public function testNormalizeModelAcceptsOnlyKnownModels(): void
+    {
+        $this->assertSame('komfort', $this->orders->normalizeModel('komfort'));
+        $this->expectException(ValidationException::class);
+        $this->orders->normalizeModel('');
+    }
 }

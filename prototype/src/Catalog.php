@@ -36,6 +36,17 @@ final class Catalog
     // Kennung der Bestellung des Basis-Sets (Hub plus BASE_INCLUDED); kein Produkt zum Dazubuchen
     public const BASE_PRODUCT_ID = 'basis';
 
+    /**
+     * Pakete, aus denen man bei der Registrierung waehlt (wie die Fertigpakete auf der Website).
+     * Beide enthalten das Basis-Set; extras sind Zusatztechnik oben drauf (Produkt => Stueckzahl).
+     *
+     * @var array<string, array{name: string, description: string, extras: array<string, int>}>
+     */
+    public const MODELS = [
+        'starter' => ['name' => 'Starter', 'description' => 'Das Basis-Set, nicht mehr und nicht weniger', 'extras' => []],
+        'komfort' => ['name' => 'Komfort', 'description' => 'Basis-Set plus 2 weitere Lampen, 1 weiterer Bewegungsmelder und 1 Temperatursensor', 'extras' => ['led' => 2, 'bewegung' => 1, 'temperatur' => 1]],
+    ];
+
     public const BASE_INCLUDED = ['led' => 2, 'steckdose' => 1, 'bewegung' => 1];
 
     /**
@@ -88,6 +99,22 @@ final class Catalog
         }
 
         return implode(', ', $parts);
+    }
+
+    public static function modelExists(string $modelId): bool
+    {
+        return isset(self::MODELS[$modelId]);
+    }
+
+    // Monatspreis eines Pakets bei Abo-Start: Grundgebuehr plus Zusatztechnik
+    public static function modelMonthlyPrice(string $modelId): float
+    {
+        $sum = self::BASE_MONTHLY_FEE;
+        foreach (self::MODELS[$modelId]['extras'] ?? [] as $productId => $count) {
+            $sum += self::monthlyPrice($productId, 0) * $count;
+        }
+
+        return round($sum, 2);
     }
 
     public static function exists(string $productId): bool
