@@ -40,9 +40,18 @@ test("Die Startseite nennt alle Komponenten mit dem Preis aus dem Code", () => {
         assert.ok(startseite.includes(komponente.name), `${komponente.name} fehlt auf der Startseite`);
         assert.ok(startseite.includes(`${euro(komponente.preis)} €`), `Preis von ${komponente.name} stimmt nicht`);
         assert.ok(
-            startseite.includes(`bis zu ${komponente.ersparnisProzent} %`),
+            startseite.includes(`bis zu ${String(komponente.ersparnisProzent).replace(".", ",")} %`),
             `Ersparnis von ${komponente.name} stimmt nicht`
         );
+    }
+});
+
+test("Jedes Piktogramm der Komponenten ist auf Startseite und Konfigurator definiert", () => {
+    for (const seite of ["index.html", "konfigurator.html"]) {
+        const inhalt = lies(seite);
+        for (const komponente of KOMPONENTEN) {
+            assert.ok(inhalt.includes(`id="${komponente.piktogramm}"`), `${seite}: ${komponente.piktogramm} fehlt`);
+        }
     }
 });
 

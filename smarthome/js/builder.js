@@ -6,6 +6,14 @@ const LAUFZEIT_MONATE = 24;
 const BASIS_GEBUEHR = 5.99;
 const BASIS_ENTHALTEN = ["led", "led", "steckdose", "bewegung"];
 
+// Ersparnis durch die Verbrauchsanzeige von Hub und App in Prozent der Energiekosten. Wert aus dem Feldversuch
+// Intelliekon (Fraunhofer ISE/ISI, ueber 2.000 Haushalte): 3,7 % weniger Stromverbrauch. Wie im PHP-Prototyp.
+const BASIS_ERSPARNIS_PROZENT = 3.7;
+
+function formatiereProzent(wert) {
+    return wert.toLocaleString("de-DE", { maximumFractionDigits: 1 });
+}
+
 //Product
 
 class SmartHomePaket {
@@ -28,9 +36,14 @@ class SmartHomePaket {
     }
 
     get ersparnisProzent() {
-        const alle = [...BASIS_ENTHALTEN.map(id => KOMPONENTEN.find(k => k.id === id)), ...this.komponenten];
-        const prozent = alle.reduce((summe, k) => summe + k.ersparnisProzent, 0);
-        return Math.min(prozent, MAX_ERSPARNIS_PROZENT);
+        const gezaehlt = {};
+        let prozent = BASIS_ERSPARNIS_PROZENT;
+        for (const k of this.komponenten) {
+            const bisher = gezaehlt[k.id] ?? 0;
+            if (bisher < k.maxSinnvoll) prozent += k.ersparnisProzent;
+            gezaehlt[k.id] = bisher + 1;
+        }
+        return Math.min(Math.round(prozent * 10) / 10, MAX_ERSPARNIS_PROZENT);
     }
 
     berechneErsparnis(monatlicheEnergiekosten) {
@@ -85,5 +98,5 @@ class PaketKonfigurator {
 }
 
 if (typeof module !== "undefined") {
-    module.exports = { SmartHomePaket, PaketBuilder, SmartHomePaketBuilder, PaketKonfigurator, MAX_ERSPARNIS_PROZENT, LAUFZEIT_MONATE, BASIS_GEBUEHR, BASIS_ENTHALTEN };
+    module.exports = { SmartHomePaket, PaketBuilder, SmartHomePaketBuilder, PaketKonfigurator, MAX_ERSPARNIS_PROZENT, LAUFZEIT_MONATE, BASIS_GEBUEHR, BASIS_ENTHALTEN, BASIS_ERSPARNIS_PROZENT, formatiereProzent };
 }

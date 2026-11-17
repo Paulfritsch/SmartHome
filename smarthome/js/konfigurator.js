@@ -28,7 +28,7 @@ function renderKomponenten() {
             <div class="posten-text">
                 <h3>${komponente.name}</h3>
                 <p>${komponente.beschreibung}.</p>
-                <p class="spar">Spart geschätzt bis zu ${komponente.ersparnisProzent} % der Energiekosten.</p>
+                <p class="spar">Spart geschätzt bis zu ${formatiereProzent(komponente.ersparnisProzent)} % der Energiekosten.</p>
             </div>
             <div class="posten-rechts">
                 <p class="preis">${formatiereEuro(komponente.preis)}<small>pro Monat</small></p>
@@ -108,16 +108,17 @@ function aktualisiereBerechnung() {
         `${differenz > 0 ? "+" : differenz < 0 ? "−" : ""}${formatiereEuro(Math.abs(differenz))}`;
 
     document.getElementById("skala-text").textContent =
-        `${paket.ersparnisProzent} % von höchstens ${MAX_ERSPARNIS_PROZENT} %`;
+        `${formatiereProzent(paket.ersparnisProzent)} % von höchstens ${MAX_ERSPARNIS_PROZENT} %`;
     document.getElementById("skala-fuell").style.width =
         `${(paket.ersparnisProzent / MAX_ERSPARNIS_PROZENT) * 100}%`;
 
     let satz;
     if (differenz >= 0) {
-        satz = `Unterm Strich bleiben dir ${formatiereEuro(differenz)} im Monat.`;
+        satz = `Die Ersparnis deckt das ganze Abo. Der Komfort kostet dich nichts, es bleiben ${formatiereEuro(differenz)} im Monat übrig.`;
     } else {
         const eigenanteil = -differenz;
-        satz = `Unterm Strich zahlst du ${formatiereEuro(eigenanteil)} im Monat für Technik, die dir nach ${LAUFZEIT_MONATE} Monaten gehört. Das sind ${formatiereEuro(eigenanteil * LAUFZEIT_MONATE)} in ${LAUFZEIT_MONATE} Monaten.`;
+        const deckung = Math.floor((ersparnis / paket.monatspreis) * 100);
+        satz = `Die Ersparnis deckt ${deckung} % des Abos. Für den Komfort zahlst du ${formatiereEuro(eigenanteil)} im Monat drauf, das sind ${formatiereEuro(eigenanteil * LAUFZEIT_MONATE)} in ${LAUFZEIT_MONATE} Monaten. Danach gehört dir die Technik.`;
     }
     document.getElementById("ergebnis-satz").textContent = satz;
 }

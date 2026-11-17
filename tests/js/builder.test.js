@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 global.KOMPONENTEN = require("../../smarthome/js/komponenten.js");
-const { SmartHomePaketBuilder, PaketKonfigurator } = require("../../smarthome/js/builder.js");
+const { SmartHomePaketBuilder, PaketKonfigurator, MAX_ERSPARNIS_PROZENT } = require("../../smarthome/js/builder.js");
 
 test("Komponenten können hinzugefügt und einzeln entfernt werden", () => {
     const builder = new SmartHomePaketBuilder();
@@ -21,8 +21,8 @@ test("Starter-Paket enthält die erwarteten Komponenten und Preise", () => {
 
     assert.deepEqual(paket.komponenten, []); // nur das Basis-Abo
     assert.equal(paket.monatspreis, 5.99);
-    assert.equal(paket.ersparnisProzent, 11); // 2 LED, Steckdose, Bewegungsmelder im Basis-Abo
-    assert.equal(paket.berechneErsparnis(120), 13.2);
+    assert.equal(paket.ersparnisProzent, 3.7); // Verbrauchsanzeige durch Hub und App
+    assert.equal(Math.round(paket.berechneErsparnis(120) * 100) / 100, 4.44);
 });
 
 test("Komfort-Paket enthält die erwarteten Komponenten und Preise", () => {
@@ -31,15 +31,22 @@ test("Komfort-Paket enthält die erwarteten Komponenten und Preise", () => {
 
     assert.equal(paket.komponenten.length, 4); // zusaetzlich zum Basis-Abo
     assert.equal(paket.monatspreis, 8.57);
-    assert.equal(paket.ersparnisProzent, 23);
+    assert.equal(paket.ersparnisProzent, 6.3); // 3,7 + 2 LED (0,8) + Bewegungsmelder (1) + Temperatursensor (0,8)
 });
 
-test("Ersparnis wird bei 30 Prozent gedeckelt", () => {
+test("Stücke über der sinnvollen Anzahl bringen keine weitere Ersparnis", () => {
     const builder = new SmartHomePaketBuilder();
-    for (let i = 0; i < 7; i++) builder.addKomponente("temperatur");
+    for (let i = 0; i < 9; i++) builder.addKomponente("thermostat");
 
-    assert.equal(builder.build().ersparnisProzent, 30);
-    assert.equal(builder.build().berechneErsparnis(100), 30);
+    assert.equal(builder.build().ersparnisProzent, 15.7); // 3,7 + 4 × 3
+    assert.equal(builder.build().berechneErsparnis(100), 15.7);
+});
+
+test("Alle Komponenten in sinnvoller Menge bleiben unter der Obergrenze von 30 Prozent", () => {
+    const builder = new SmartHomePaketBuilder();
+    for (const k of KOMPONENTEN) for (let i = 0; i < k.maxSinnvoll; i++) builder.addKomponente(k.id);
+
+    assert.ok(builder.build().ersparnisProzent < MAX_ERSPARNIS_PROZENT);
 });
 
 test("Unbekannte Komponenten werden abgelehnt", () => {
@@ -47,16 +54,23 @@ test("Unbekannte Komponenten werden abgelehnt", () => {
     assert.throws(() => builder.addKomponente("unbekannt"), /Unbekannte Komponente/);
 });
 
-test("bei 120 € Energiekosten sparen beide Fertigpakete mehr, als sie kosten", () => {
+test("bei 250 € Energiekosten deckt die Ersparnis beide Fertigpakete", () => {
   for (const bauen of ["buildStarterPaket", "buildKomfortPaket"]) {
     const paket = new PaketKonfigurator(new SmartHomePaketBuilder())[bauen]();
-    assert.ok(paket.berechneErsparnis(120) > paket.monatspreis, bauen);
+    assert.ok(paket.berechneErsparnis(250) > paket.monatspreis, bauen);
   }
 });
 
-test("jede Komponente rechnet sich ab etwa 60 € Energiekosten im Monat", () => {
-  for (const k of KOMPONENTEN) {
+test("Thermostat, Fenster- und Temperatursensor rechnen sich ab etwa 75 € Energiekosten", () => {
+  for (const id of ["thermostat", "fenster", "temperatur"]) {
+    const k = KOMPONENTEN.find(komponente => komponente.id === id);
     const schwelle = k.preis / (k.ersparnisProzent / 100);
-    assert.ok(schwelle <= 62, `${k.id}: ${schwelle.toFixed(1)} €`);
+    assert.ok(schwelle <= 75, `${k.id}: ${schwelle.toFixed(1)} €`);
+  }
+});
+
+test("Jede Komponente hat Preis, Ersparnis und Stückgrenze", () => {
+  for (const k of KOMPONENTEN) {
+    assert.ok(k.preis > 0 && k.ersparnisProzent > 0 && k.maxSinnvoll >= 1, k.id);
   }
 });
