@@ -8,8 +8,9 @@ use SmartSave\Catalog;
 use SmartSave\ExampleApartment;
 use SmartSave\ValidationException;
 
-if (currentUser($users) !== null) {
-    redirect('dashboard.php');
+$current = currentUser($users);
+if ($current !== null) {
+    redirect(homePage($current));
 }
 
 $form = ['name' => '', 'email' => '', 'price' => '', 'old_cost' => '', 'model' => '', 'street' => '', 'zip' => '', 'city' => ''];

@@ -8,7 +8,7 @@ use SmartSave\Catalog;
 use SmartSave\ValidationException;
 
 // Fuer Konten ohne Paket-Bestellung (z. B. vor der Einfuehrung der Lieferadresse angelegt)
-$user = requireUser($users);
+$user = requireCustomer($users);
 
 if ($orders->hasBaseOrder($user->id)) {
     flash('ok', ['Dein Basis-Set ist schon bestellt.']);

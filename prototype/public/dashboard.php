@@ -13,7 +13,7 @@ use SmartSave\RoomRepository;
 use SmartSave\Subscription;
 use SmartSave\ValidationException;
 
-$user = requireUser($users);
+$user = requireCustomer($users);
 
 function postString(string $key): string
 {

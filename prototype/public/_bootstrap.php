@@ -64,6 +64,23 @@ function requireUser(UserRepository $users): User
     return $user;
 }
 
+// Startseite nach dem Login: Admins sehen nur den Admin-Bereich, Kunden ihre Wohnung
+function homePage(User $user): string
+{
+    return $user->isAdmin ? 'admin.php' : 'dashboard.php';
+}
+
+// Seiten fuer Kunden (Wohnung, Kasse, Paketwahl): Admins haben dort nichts zu suchen und gehen zu admin.php
+function requireCustomer(UserRepository $users): User
+{
+    $user = requireUser($users);
+    if ($user->isAdmin) {
+        redirect('admin.php');
+    }
+
+    return $user;
+}
+
 // Nur fuer Admins (siehe bin/make-admin.php). Alle anderen sehen einen 403-Fehler, nicht die Seite.
 function requireAdmin(UserRepository $users): User
 {
@@ -173,9 +190,6 @@ function pageStart(string $title, ?User $user = null): void
     <a class="marke" href="/">SmartSave</a>
     <?php if ($user !== null): ?>
         <form method="post" action="logout.php" class="abmelden">
-            <?php if ($user->isAdmin): ?>
-                <a href="admin.php">Bestellungen (Admin)</a>
-            <?php endif; ?>
             <?= csrfField() ?>
             <span><?= e($user->name) ?></span>
             <button type="submit" class="leise">Abmelden</button>

@@ -8,7 +8,7 @@ use SmartSave\Catalog;
 use SmartSave\OrderRepository;
 use SmartSave\ValidationException;
 
-$user = requireUser($users);
+$user = requireCustomer($users);
 
 $productId = $_POST['product'] ?? $_GET['product'] ?? '';
 $productId = is_string($productId) ? $productId : '';

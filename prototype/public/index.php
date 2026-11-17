@@ -4,4 +4,5 @@ declare(strict_types=1);
 
 require __DIR__ . '/_bootstrap.php';
 
-redirect(currentUser($users) !== null ? 'dashboard.php' : 'login.php');
+$current = currentUser($users);
+redirect($current !== null ? homePage($current) : 'login.php');

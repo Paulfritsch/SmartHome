@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/_bootstrap.php';
 
-if (currentUser($users) !== null) {
-    redirect('dashboard.php');
+$current = currentUser($users);
+if ($current !== null) {
+    redirect(homePage($current));
 }
 
 $email = '';
@@ -18,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($user !== null) {
         session_regenerate_id(true); // neue Sitzungs-ID nach dem Login (gegen Session Fixation)
         $_SESSION['user_id'] = $user->id;
-        redirect('dashboard.php');
+        redirect(homePage($user));
     }
 
     // bewusst eine Meldung fuer beide Faelle: man erfaehrt nicht, ob die E-Mail existiert
