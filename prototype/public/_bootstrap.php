@@ -11,6 +11,7 @@ use SmartSave\BookingRepository;
 use SmartSave\Database;
 use SmartSave\RoomRepository;
 use SmartSave\DeviceRepository;
+use SmartSave\OrderRepository;
 use SmartSave\User;
 use SmartSave\UserRepository;
 
@@ -33,6 +34,7 @@ $users = new UserRepository($pdo);
 $rooms = new RoomRepository($pdo);
 $devices = new DeviceRepository($pdo);
 $bookings = new BookingRepository($pdo);
+$orders = new OrderRepository($pdo, $bookings);
 
 function e(string|int|float $value): string
 {
@@ -60,6 +62,39 @@ function requireUser(UserRepository $users): User
     }
 
     return $user;
+}
+
+// Nur fuer Admins (siehe bin/make-admin.php). Alle anderen sehen einen 403-Fehler, nicht die Seite.
+function requireAdmin(UserRepository $users): User
+{
+    $user = requireUser($users);
+    if (!$user->isAdmin) {
+        http_response_code(403);
+        pageStart('Kein Zugriff', $user);
+        echo '<h1>Kein Zugriff</h1><p>Dieser Bereich ist nur für das SmartSave-Team.</p><p><a href="dashboard.php">Zurück zu meiner Wohnung</a></p>';
+        pageEnd();
+        exit;
+    }
+
+    return $user;
+}
+
+function euro(float $value): string
+{
+    return number_format($value, 2, ',', '.') . ' €';
+}
+
+function signedEuro(float $value): string
+{
+    return ($value < 0 ? '−' : '+') . euro(abs($value));
+}
+
+/** Zeitstempel aus SQLite (UTC) als deutsche Ortszeit. */
+function berlinTime(string $utc): string
+{
+    $time = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $utc, new DateTimeZone('UTC'));
+
+    return $time === false ? $utc : $time->setTimezone(new DateTimeZone('Europe/Berlin'))->format('d.m.Y H:i');
 }
 
 function csrfToken(): string
@@ -113,6 +148,9 @@ function pageStart(string $title, ?User $user = null): void
     <a class="marke" href="/">SmartSave</a>
     <?php if ($user !== null): ?>
         <form method="post" action="logout.php" class="abmelden">
+            <?php if ($user->isAdmin): ?>
+                <a href="admin.php">Bestellungen (Admin)</a>
+            <?php endif; ?>
             <?= csrfField() ?>
             <span><?= e($user->name) ?></span>
             <button type="submit" class="leise">Abmelden</button>

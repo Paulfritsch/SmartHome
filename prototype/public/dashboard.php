@@ -78,15 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $users->updateSettings($user->id, postString('price'), postString('old_cost'));
                 flash('ok', ['Einstellungen gespeichert.']);
                 break;
-            case 'book_product':
-                $productId = postString('product');
-                $bookings->book($user->id, $productId, $user->monthsElapsed);
-                flash('ok', [Catalog::PRODUCTS[$productId]['name'] . ' dazugebucht: '
-                    . number_format(Catalog::monthlyPrice($productId, $user->monthsElapsed), 2, ',', '.')
-                    . ' € pro Monat bis zum Ende der Laufzeit.']);
-                break;
-            case 'cancel_booking':
-                $bookings->cancel($user->id, postInt('booking_id'));
+            case 'cancel_order':
+                if ($orders->cancelOpen($user->id, postInt('order_id'))) {
+                    flash('ok', ['Bestellung storniert.']);
+                } else {
+                    flash('fehler', ['Diese Bestellung lässt sich nicht mehr stornieren.']);
+                }
                 break;
             case 'set_month':
                 $users->setMonthsElapsed($user->id, postInt('months'));
@@ -117,16 +114,6 @@ foreach ($deviceRows as $row) {
     $devicesByRoom[$row['roomId']][] = $row;
 }
 
-function euro(float $value): string
-{
-    return number_format($value, 2, ',', '.') . ' €';
-}
-
-function signedEuro(float $value): string
-{
-    return ($value < 0 ? '−' : '+') . euro(abs($value));
-}
-
 function categoryOptions(DeviceCategory $selected): string
 {
     $html = '';
@@ -141,6 +128,7 @@ function categoryOptions(DeviceCategory $selected): string
 $now = new DateTimeImmutable('now');
 
 $bookingList = $bookings->listForUser($user->id);
+$orderList = $orders->listForUser($user->id);
 $subscription = new Subscription($dashboard->getSavings(), $bookingList, $user->monthsElapsed);
 $month = $subscription->monthsElapsed();
 
@@ -363,31 +351,34 @@ pageStart('Meine Wohnung', $user);
                         <strong><?= e($product['name']) ?></strong>
                         <span class="klein"><?= e($product['description']) ?></span>
                     </div>
-                    <form method="post">
-                        <?= csrfField() ?>
-                        <input type="hidden" name="action" value="book_product">
-                        <input type="hidden" name="product" value="<?= e($productId) ?>">
+                    <div class="kaufen">
                         <span class="preis"><?= e(euro($price)) ?> <span class="klein">pro Monat</span></span>
-                        <button type="submit">Dazubuchen</button>
-                    </form>
+                        <a class="knopf" href="checkout.php?product=<?= e($productId) ?>">Dazubuchen</a>
+                    </div>
                 </li>
             <?php endforeach; ?>
         </ul>
     <?php endif; ?>
 
-    <?php if ($bookingList !== []): ?>
-        <h3>Deine gebuchte Zusatztechnik</h3>
+    <?php if ($orderList !== []): ?>
+        <h3>Deine Bestellungen</h3>
         <ul class="gebucht">
-            <?php foreach ($bookingList as $booking): ?>
+            <?php foreach ($orderList as $order): ?>
                 <li>
-                    <span><?= e(Catalog::PRODUCTS[$booking['product']]['name'] ?? $booking['product']) ?>
-                        <span class="klein">seit Monat <?= e($booking['startMonth']) ?> · <?= e(euro($booking['monthlyPrice'])) ?> pro Monat</span></span>
-                    <form method="post">
-                        <?= csrfField() ?>
-                        <input type="hidden" name="action" value="cancel_booking">
-                        <input type="hidden" name="booking_id" value="<?= e($booking['id']) ?>">
-                        <button type="submit" class="gefahr">Entfernen</button>
-                    </form>
+                    <span>
+                        <?= e($order['quantity']) ?>× <?= e(Catalog::PRODUCTS[$order['product']]['name'] ?? $order['product']) ?>
+                        <span class="status <?= e($order['status']) ?>"><?= e($order['status']) ?></span>
+                        <span class="klein"><?= e(euro($order['monthlyPrice'] * $order['quantity'])) ?> pro Monat ab Monat <?= e($order['startMonth']) ?>
+                            · Lieferung an <?= e($order['name']) ?>, <?= e($order['street']) ?>, <?= e($order['zip']) ?> <?= e($order['city']) ?></span>
+                    </span>
+                    <?php if ($order['status'] === 'offen'): ?>
+                        <form method="post">
+                            <?= csrfField() ?>
+                            <input type="hidden" name="action" value="cancel_order">
+                            <input type="hidden" name="order_id" value="<?= e($order['id']) ?>">
+                            <button type="submit" class="gefahr">Stornieren</button>
+                        </form>
+                    <?php endif; ?>
                 </li>
             <?php endforeach; ?>
         </ul>

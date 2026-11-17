@@ -62,7 +62,16 @@ Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://loca
    pro Monat, dazu bisher Gespartes, Prognose für 24 Monate und „danach gehört dir alles“.
    Ein Demo-Zeitraffer springt in der Laufzeit vor, damit man nicht 24 Monate warten muss.
    Preise und Produkte stehen zentral in `prototype/src/Catalog.php` (Kalkulation als Kommentar).
-5. **Nur eigene Daten:** Jede Datenbankabfrage ist an die Nutzer-ID gebunden.
+5. **Checkout und Bestellungen:** „Dazubuchen“ führt zur Kasse (`checkout.php`): Anzahl (1–5), Lieferadresse und
+   der echte Monatspreis für die Restlaufzeit. Als Zahlungsart gibt es nur „Bezahlung vor Ort bei der Lieferung“,
+   online wird nichts bezahlt. Eine Bestellung ist `offen`, bis sie geliefert oder vom Nutzer storniert wird
+   (stornieren geht nur, solange sie offen ist; die Abo-Gebühr sinkt dann wieder).
+6. **Admin-Bereich für das Team:** `admin.php` zeigt offene, gelieferte und stornierte Bestellungen, eine Packliste
+   und je offener Bestellung Kunde und Lieferadresse mit Button „Als geliefert markieren“. Admin wird man nur mit
+   Zugriff auf den Rechner: erst normal registrieren, dann im Terminal
+   `php prototype/bin/make-admin.php anna@example.de` (mit `--remove` wieder entziehen). Es gibt keinen Standard-Admin.
+   Datenschutz: Die Lieferadressen sind personenbezogene Daten und gehören nur ins Testsystem mit Fantasiedaten.
+7. **Nur eigene Daten:** Jede Datenbankabfrage ist an die Nutzer-ID gebunden.
 
 Die Datenbank liegt in `prototype/data/smartsave.sqlite` (nicht im Git). Zum Zurücksetzen die Datei löschen.
 Sicherheit: Passwörter nur als Hash (`password_hash`), Prepared Statements, CSRF-Token in jedem Formular,

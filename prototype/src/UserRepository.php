@@ -115,6 +115,20 @@ final class UserRepository
     }
 
     /**
+     * Macht ein Konto zum Admin. Gedacht fuer das Skript prototype/bin/make-admin.php,
+     * nicht fuer eine Webseite: Admin wird man nur mit Zugriff auf den Server.
+     *
+     * @return bool false, wenn es kein Konto mit dieser E-Mail gibt
+     */
+    public function setAdmin(string $email, bool $isAdmin = true): bool
+    {
+        $statement = $this->pdo->prepare('UPDATE users SET is_admin = :a WHERE email = :e');
+        $statement->execute(['a' => $isAdmin ? 1 : 0, 'e' => strtolower(trim($email))]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
      * Demo-Zeitraffer: so tun, als waeren schon $months Monate der Laufzeit vergangen.
      *
      * @throws ValidationException
@@ -150,7 +164,8 @@ final class UserRepository
             (string) $row['email'],
             (float) $row['price_per_kwh'],
             (float) $row['old_monthly_cost'],
-            (int) ($row['months_elapsed'] ?? 0)
+            (int) ($row['months_elapsed'] ?? 0),
+            (int) ($row['is_admin'] ?? 0) === 1
         );
     }
 

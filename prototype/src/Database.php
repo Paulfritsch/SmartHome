@@ -47,7 +47,30 @@ final class Database
                 months_elapsed INTEGER NOT NULL DEFAULT 0
             )'
         );
-        self::addMissingColumns($pdo, 'users', ['months_elapsed' => 'INTEGER NOT NULL DEFAULT 0']);
+        self::addMissingColumns($pdo, 'users', [
+            'months_elapsed' => 'INTEGER NOT NULL DEFAULT 0',
+            'is_admin' => 'INTEGER NOT NULL DEFAULT 0',
+        ]);
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                product TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                monthly_price REAL NOT NULL,
+                start_month INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT \'offen\',
+                payment_method TEXT NOT NULL,
+                ship_name TEXT NOT NULL,
+                ship_street TEXT NOT NULL,
+                ship_zip TEXT NOT NULL,
+                ship_city TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                delivered_at TEXT
+            )'
+        );
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)');
         $pdo->exec(
             'CREATE TABLE IF NOT EXISTS bookings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,6 +80,7 @@ final class Database
                 monthly_price REAL NOT NULL
             )'
         );
+        self::addMissingColumns($pdo, 'bookings', ['order_id' => 'INTEGER']);
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_id)');
         $pdo->exec(
             'CREATE TABLE IF NOT EXISTS rooms (

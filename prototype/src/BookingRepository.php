@@ -16,7 +16,7 @@ final class BookingRepository
     /**
      * @throws ValidationException
      */
-    public function book(int $userId, string $productId, int $currentMonth): int
+    public function book(int $userId, string $productId, int $currentMonth, ?int $orderId = null): int
     {
         if (!Catalog::exists($productId)) {
             throw new ValidationException(['Produkt: bitte ein Produkt aus der Liste wählen.']);
@@ -34,12 +34,13 @@ final class BookingRepository
         }
 
         $this->pdo
-            ->prepare('INSERT INTO bookings (user_id, product, start_month, monthly_price) VALUES (:u, :p, :m, :price)')
+            ->prepare('INSERT INTO bookings (user_id, product, start_month, monthly_price, order_id) VALUES (:u, :p, :m, :price, :o)')
             ->execute([
                 'u' => $userId,
                 'p' => $productId,
                 'm' => $currentMonth,
                 'price' => Catalog::monthlyPrice($productId, $currentMonth),
+                'o' => $orderId,
             ]);
 
         return (int) $this->pdo->lastInsertId();
