@@ -37,15 +37,41 @@ final class Dashboard
      */
     public static function fromRequest(array $post, bool $isPost): self
     {
-        return new self($post, $isPost);
+        $dashboard = new self();
+        $dashboard->loadFromRequest($post, $isPost);
+
+        return $dashboard;
     }
 
-    /** @param array<string, mixed> $post */
-    private function __construct(array $post, bool $isPost)
+    /**
+     * Dashboard fuer einen angemeldeten Nutzer: Preis und Kosten kommen aus seinem Konto,
+     * die Geraete aus der Datenbank (Zustand an/aus steckt schon im Geraet).
+     *
+     * @param Device[] $devices
+     */
+    public static function forUser(float $oldMonthlyCost, float $pricePerKwh, array $devices): self
+    {
+        $dashboard = new self();
+        $dashboard->oldMonthlyCost = $oldMonthlyCost;
+        $dashboard->pricePerKwh = $pricePerKwh;
+        foreach ($devices as $device) {
+            $dashboard->addDevice($device, $device->isOn());
+        }
+
+        return $dashboard;
+    }
+
+    private function __construct()
     {
         $this->monitor = new EnergyMonitor();
         $this->calculator = new SavingsCalculator();
+        $this->oldMonthlyCost = self::DEFAULT_OLD_MONTHLY_COST;
+        $this->pricePerKwh = SavingsCalculator::DEFAULT_PRICE_PER_KWH;
+    }
 
+    /** @param array<string, mixed> $post */
+    private function loadFromRequest(array $post, bool $isPost): void
+    {
         $this->oldMonthlyCost = $this->readNumber(
             $post['old_cost'] ?? null,
             'Bisherige Energiekosten',
@@ -119,6 +145,23 @@ final class Dashboard
     public function getSavings(): float
     {
         return $this->calculator->calculateSavings($this->oldMonthlyCost, $this->pricePerKwh);
+    }
+
+    // Ersparnis durch Zeitplaene in kWh pro Monat (nur eingeschaltete Geraete mit Zeitplan)
+    public function getScheduleSavingsKwh(): float
+    {
+        return array_sum(array_map(static fn (Device $d): float => $d->getScheduleSavingsKwh(), $this->devices));
+    }
+
+    public function getScheduleSavings(): float
+    {
+        return $this->getScheduleSavingsKwh() * $this->pricePerKwh;
+    }
+
+    // Leistung aller Geraete zu einem Zeitpunkt in kW; Zeitplaene schalten Geraete zeitweise ab
+    public function getCurrentPowerKwAt(\DateTimeInterface $moment): float
+    {
+        return array_sum(array_map(static fn (Device $d): float => $d->getPowerKwAt($moment), $this->devices));
     }
 
     // Summe der aktuellen Leistung aller eingeschalteten Geraete in kW

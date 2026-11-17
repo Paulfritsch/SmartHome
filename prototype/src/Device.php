@@ -19,7 +19,9 @@ class Device implements SubjectInterface
         private readonly string $name,
         private readonly float $wattage,
         // geschaetzte taegliche Nutzungsdauer in Stunden, z.B. 6.0 = 6h/Tag
-        private readonly float $hoursPerDay = 0.0
+        private readonly float $hoursPerDay = 0.0,
+        private readonly DeviceCategory $category = DeviceCategory::Other,
+        private readonly ?Schedule $schedule = null
     ) {
     }
 
@@ -81,13 +83,55 @@ class Device implements SubjectInterface
         return $this->isOn ? $this->wattage / 1000 : 0.0;
     }
 
-    // tatsaechlicher Verbrauch pro Monat in kWh, basierend auf Nutzungsdauer/Tag
-    public function getMonthlyConsumptionKwh(int $daysPerMonth = self::DAYS_PER_MONTH): float
+    public function getCategory(): DeviceCategory
+    {
+        return $this->category;
+    }
+
+    public function getSchedule(): ?Schedule
+    {
+        return $this->schedule;
+    }
+
+    // Leistung zu einem Zeitpunkt in kW: aus, wenn das Geraet ausgeschaltet ist oder der Zeitplan es gerade abschaltet
+    public function getPowerKwAt(\DateTimeInterface $moment): float
+    {
+        if ($this->schedule !== null && $this->schedule->isOffAt($moment)) {
+            return 0.0;
+        }
+
+        return $this->getPowerKw();
+    }
+
+    // Monatsverbrauch in kWh ohne Zeitplan (nur Nutzungsdauer/Tag)
+    public function getMonthlyConsumptionWithoutScheduleKwh(int $daysPerMonth = self::DAYS_PER_MONTH): float
     {
         if (!$this->isOn) {
             return 0.0;
         }
 
         return ($this->wattage / 1000) * $this->hoursPerDay * $daysPerMonth;
+    }
+
+    // Ersparnis durch den Zeitplan in kWh pro Monat. Annahme: Das Geraet wuerde gleichmaessig ueber den
+    // Tag genutzt; der Anteil der ausgeschalteten Zeit (z. B. 8 von 24 Stunden) faellt weg, gewichtet mit
+    // dem Faktor der Geraeteart (Steckdose = 0).
+    public function getScheduleSavingsKwh(int $daysPerMonth = self::DAYS_PER_MONTH): float
+    {
+        if ($this->schedule === null) {
+            return 0.0;
+        }
+
+        $savedHoursPerDay = $this->hoursPerDay * ($this->schedule->offHoursPerDay() / 24) * $this->category->savingsFactor();
+
+        return ($this->getMonthlyConsumptionWithoutScheduleKwh($daysPerMonth) > 0.0)
+            ? ($this->wattage / 1000) * $savedHoursPerDay * $daysPerMonth
+            : 0.0;
+    }
+
+    // tatsaechlicher Verbrauch pro Monat in kWh: Nutzungsdauer/Tag abzueglich Ersparnis durch den Zeitplan
+    public function getMonthlyConsumptionKwh(int $daysPerMonth = self::DAYS_PER_MONTH): float
+    {
+        return $this->getMonthlyConsumptionWithoutScheduleKwh($daysPerMonth) - $this->getScheduleSavingsKwh($daysPerMonth);
     }
 }

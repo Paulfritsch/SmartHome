@@ -7,12 +7,12 @@ use SmartSave\Observer\ObserverInterface;
 // Beobachter im Observer Pattern: protokolliert Verbrauch je Geraet
 class EnergyMonitor implements ObserverInterface
 {
-    /** @var array<string, float> */
+    /** @var array<int, float> Schluessel = Objekt-ID des Geraets */
     private array $consumptionLog = [];
 
     public function update(Device $device): void
     {
-        $this->consumptionLog[$device->getName()] = $device->getPowerKw();
+        $this->consumptionLog[spl_object_id($device)] = $device->getPowerKw();
     }
 
     public function getTotalConsumption(): float
@@ -20,7 +20,7 @@ class EnergyMonitor implements ObserverInterface
         return array_sum($this->consumptionLog);
     }
 
-    /** @return array<string, float> */
+    /** @return array<int, float> */
     public function getConsumptionLog(): array
     {
         return $this->consumptionLog;

@@ -9,13 +9,13 @@ class SavingsCalculator implements ObserverInterface
 {
     public const DEFAULT_PRICE_PER_KWH = 0.35;
 
-    /** @var array<string, float> Monatsverbrauch in kWh je Geraetename */
+    /** @var array<int, float> Monatsverbrauch in kWh je Geraet (Schluessel = Objekt-ID, damit gleiche Namen sich nicht ueberschreiben) */
     private array $consumptionByDevice = [];
 
     public function update(Device $device): void
     {
         // ueberschreiben statt addieren: jedes Geraet zaehlt nur mit seinem aktuellen Zustand
-        $this->consumptionByDevice[$device->getName()] = $device->getMonthlyConsumptionKwh();
+        $this->consumptionByDevice[spl_object_id($device)] = $device->getMonthlyConsumptionKwh();
     }
 
     // pricePerKwh in Euro, oldMonthlyCost in Euro

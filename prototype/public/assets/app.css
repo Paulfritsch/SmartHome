@@ -1,0 +1,111 @@
+:root {
+    --blau: #1c3fd8;
+    --tinte: #0f1733;
+    --tinte-weich: #444c66;
+    --papier: #f4f6fa;
+    --flaeche: #fff;
+    --linie: #cbd3e6;
+    --rand: #7a86a8;
+    --licht: #ffd426;
+    --licht-weich: #fff7d1;
+    --gruen: #0a7048;
+    --rot: #b3261e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--papier);
+    color: var(--tinte);
+    font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main { max-width: 68rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 1.25rem; }
+h2 { font-size: 1.15rem; margin: 0 0 .5rem; }
+a { color: var(--blau); }
+.klein { font-size: .85rem; color: var(--tinte-weich); }
+
+.kopf { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .75rem 1rem; background: var(--flaeche); border-bottom: 1px solid var(--linie); }
+.marke { font-weight: 800; font-size: 1.2rem; color: var(--tinte); text-decoration: none; }
+.abmelden { display: flex; align-items: center; gap: .75rem; margin: 0; }
+.fuss { max-width: 68rem; margin: 0 auto; padding: 1rem; font-size: .85rem; color: var(--tinte-weich); }
+
+button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    background: var(--blau); color: #fff; border: 2px solid var(--blau);
+    padding: .5rem 1rem; border-radius: 4px;
+}
+button:hover { background: #142e9e; border-color: #142e9e; }
+button.leise { background: transparent; color: var(--blau); }
+button.leise:hover { background: var(--papier); }
+button.gefahr { background: transparent; color: var(--rot); border-color: var(--rot); }
+button.gefahr:hover { background: #fdecea; }
+:focus-visible { outline: 3px solid var(--blau); outline-offset: 2px; }
+
+input, select {
+    display: block; width: 100%; font: inherit; color: inherit;
+    padding: .5rem .6rem; margin: .25rem 0 .9rem;
+    background: var(--flaeche); border: 2px solid var(--rand); border-radius: 4px;
+}
+label { display: block; font-weight: 600; font-size: .95rem; }
+label.check { display: flex; gap: .5rem; align-items: center; font-weight: 400; margin-bottom: 1rem; }
+label.check input { width: auto; margin: 0; }
+
+.karte { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 6px; padding: 1.25rem; }
+.karte.schmal { max-width: 26rem; margin: 2rem auto; }
+.karte.leer { margin-bottom: 1.5rem; }
+.karte h1 { font-size: 1.6rem; }
+
+.hinweis { padding: .6rem 1rem; border-radius: 4px; margin-bottom: 1rem; border-left: 5px solid; background: var(--flaeche); }
+.hinweis ul { margin: 0; padding-left: 1.1rem; }
+.hinweis.fehler { border-color: var(--rot); background: #fdecea; }
+.hinweis.ok { border-color: var(--gruen); background: #e6f4ee; }
+
+/* Kennzahlen */
+.werte { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1px; background: var(--linie); border: 1px solid var(--linie); border-radius: 6px; overflow: hidden; margin-bottom: 1.75rem; }
+.werte > div { background: var(--flaeche); padding: .9rem 1rem; }
+.werte .zahl { display: block; font-size: 1.5rem; font-weight: 800; }
+.werte .bez { display: block; font-size: .82rem; color: var(--tinte-weich); }
+.werte .gewinn { background: var(--licht); }
+.werte .gewinn .bez { color: var(--tinte); }
+
+/* Grundriss: Raeume teilen sich die Waende wie in einer echten Wohnung */
+.wohnung {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border: 6px solid var(--tinte); border-radius: 2px; background: var(--tinte);
+    gap: 4px; margin-bottom: 2rem;
+}
+.raum { position: relative; background: var(--flaeche); padding: .9rem; min-height: 11rem; grid-column: span 2; transition: background .2s; }
+.raum.breite2 { grid-column: span 4; }
+.raum.hell { background: var(--licht-weich); }
+/* Tuerluecke in der unteren Wand */
+.raum::after { content: ""; position: absolute; left: 1.2rem; bottom: -6px; width: 2.4rem; height: 8px; background: var(--papier); }
+.raum header { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; margin-bottom: .6rem; }
+.raum h2 { margin: 0; }
+
+.geraet { display: flex; align-items: center; gap: .6rem; padding: .35rem 0; flex-wrap: wrap; }
+.zeitplan { color: var(--tinte); }
+.geraet-text { display: flex; flex-direction: column; flex: 1; min-width: 7rem; }
+.schalter { margin: 0; }
+.lampe { width: 2.75rem; height: 2.75rem; padding: .4rem; border-radius: 50%; background: var(--flaeche); border: 2px solid var(--rand); display: grid; place-items: center; }
+.lampe:hover { background: var(--papier); border-color: var(--tinte); }
+.lampe svg { width: 100%; height: 100%; fill: var(--rand); }
+.geraet.an .lampe { background: var(--licht); border-color: var(--tinte); box-shadow: 0 0 0 5px rgba(255, 212, 38, .35); }
+.geraet.an .lampe svg { fill: var(--tinte); }
+
+details { margin-top: .4rem; }
+summary { cursor: pointer; font-size: .85rem; color: var(--blau); }
+details form { padding: .6rem 0 0; }
+details input, details select { margin-bottom: .6rem; }
+.geraet .bearbeiten { flex-basis: 100%; margin: 0 0 0 3.35rem; }
+.leerraum { margin: .5rem 0; }
+
+.unten { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+
+@media (max-width: 40rem) {
+    .wohnung { grid-template-columns: 1fr; }
+    .raum, .raum.breite2 { grid-column: span 1; }
+}
+@media (prefers-reduced-motion: reduce) { .raum { transition: none; } }
