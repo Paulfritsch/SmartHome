@@ -1,28 +1,39 @@
 let aktuellerBuilder = new SmartHomePaketBuilder();
 
 function formatiereEuro(betrag) {
-    return betrag.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `${betrag.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+}
+
+function gruppiere(komponenten) {
+    const gruppen = new Map();
+    komponenten.forEach(komponente => {
+        const gruppe = gruppen.get(komponente.id);
+        if (gruppe) {
+            gruppe.anzahl += 1;
+        } else {
+            gruppen.set(komponente.id, { komponente, anzahl: 1 });
+        }
+    });
+    return [...gruppen.values()];
 }
 
 function renderKomponenten() {
     const liste = document.getElementById("komponenten-liste");
-    liste.innerHTML = "";
+    liste.replaceChildren();
 
     KOMPONENTEN.forEach(komponente => {
-        const eintrag = document.createElement("div");
-        eintrag.className = "komponente";
+        const eintrag = document.createElement("li");
         eintrag.innerHTML = `
-            <div class="component-main">
-                <span class="component-icon">${komponente.icon}</span>
-                <div class="info">
-                    <div class="name">${komponente.name}</div>
-                    <div class="beschreibung">${komponente.beschreibung}</div>
-                    <span class="saving-tag">bis zu ${komponente.ersparnisProzent} % Ersparnis</span>
-                </div>
+            <svg class="piktogramm" aria-hidden="true"><use href="#${komponente.piktogramm}"/></svg>
+            <div class="posten-text">
+                <h3>${komponente.name}</h3>
+                <p>${komponente.beschreibung}.</p>
+                <p class="spar">Spart geschätzt bis zu ${komponente.ersparnisProzent} % der Energiekosten.</p>
             </div>
-            <div class="preis-info">
-                <span class="preis">${formatiereEuro(komponente.preis)}&nbsp;€/Monat</span>
-                <button class="add-btn" type="button" onclick="komponenteHinzufuegen('${komponente.id}')">Hinzufügen +</button>
+            <div class="posten-rechts">
+                <p class="preis">${formatiereEuro(komponente.preis)}<small>pro Monat</small></p>
+                <button class="btn btn-blau btn-klein" type="button" data-komponente="${komponente.id}"
+                    aria-label="${komponente.name} hinzufügen">Hinzufügen</button>
             </div>`;
         liste.appendChild(eintrag);
     });
@@ -30,12 +41,12 @@ function renderKomponenten() {
 
 function komponenteHinzufuegen(kompId) {
     aktuellerBuilder.addKomponente(kompId);
-    renderPaket();
+    renderPaket(kompId);
 }
 
 function komponenteEntfernen(kompId) {
     aktuellerBuilder.paket.removeKomponente(kompId);
-    renderPaket();
+    renderPaket(kompId);
 }
 
 function ladeVorlage(typ) {
@@ -72,70 +83,86 @@ function ladeGespeichertesPaket() {
     }
 }
 
+function energiekostenAusEingabe() {
+    const energiekosten = Number(document.getElementById("energiekosten").value);
+    return Number.isFinite(energiekosten) && energiekosten > 0 ? energiekosten : null;
+}
+
 function aktualisiereBerechnung() {
     const paket = aktuellerBuilder.build();
-    const energiekosten = Number(document.getElementById("energiekosten").value);
-    const ausgabe = document.getElementById("ersparnis-ausgabe");
+    const energiekosten = energiekostenAusEingabe();
+    const fehler = document.getElementById("rechnung-fehler");
+    const rechnung = document.getElementById("rechnung");
 
-    if (!Number.isFinite(energiekosten) || energiekosten <= 0) {
-        ausgabe.textContent = "Bitte gültige monatliche Energiekosten eingeben.";
-        return;
-    }
+    fehler.hidden = energiekosten !== null;
+    rechnung.hidden = energiekosten === null;
+    document.getElementById("energiekosten").setAttribute("aria-invalid", String(energiekosten === null));
+    if (energiekosten === null) return;
 
     const ersparnis = paket.berechneErsparnis(energiekosten);
     const differenz = ersparnis - paket.monatspreis;
-    const ergebnis = differenz >= 0
-        ? `${formatiereEuro(differenz)} € mehr Ersparnis als Abo-Kosten.`
-        : `${formatiereEuro(Math.abs(differenz))} € mehr Abo-Kosten als geschätzte Ersparnis.`;
 
-    ausgabe.textContent = `Geschätzte Ersparnis: ${formatiereEuro(ersparnis)} € pro Monat (${paket.ersparnisProzent} %). ${ergebnis}`;
+    document.getElementById("wert-ersparnis").textContent = `+${formatiereEuro(ersparnis)}`;
+    document.getElementById("wert-abo").textContent = `−${formatiereEuro(paket.monatspreis)}`;
+    document.getElementById("wert-differenz").textContent =
+        `${differenz > 0 ? "+" : differenz < 0 ? "−" : ""}${formatiereEuro(Math.abs(differenz))}`;
+
+    document.getElementById("skala-text").textContent =
+        `${paket.ersparnisProzent} % von höchstens ${MAX_ERSPARNIS_PROZENT} %`;
+    document.getElementById("skala-fuell").style.width =
+        `${(paket.ersparnisProzent / MAX_ERSPARNIS_PROZENT) * 100}%`;
+
+    let satz;
+    if (paket.komponenten.length === 0) {
+        satz = "Wähle eine Komponente, dann siehst du hier, was das Abo kostet und was es spart.";
+    } else if (differenz >= 0) {
+        satz = `Unterm Strich bleiben dir ${formatiereEuro(differenz)} im Monat.`;
+    } else {
+        const eigenanteil = -differenz;
+        satz = `Unterm Strich zahlst du ${formatiereEuro(eigenanteil)} im Monat für Technik, die dir nach ${LAUFZEIT_MONATE} Monaten gehört. Das sind ${formatiereEuro(eigenanteil * LAUFZEIT_MONATE)} in ${LAUFZEIT_MONATE} Monaten.`;
+    }
+    document.getElementById("ergebnis-satz").textContent = satz;
 }
 
-function renderPaket() {
+function renderPaket(geaendertId = null) {
     const paket = aktuellerBuilder.build();
     const liste = document.getElementById("ausgewaehlte-liste");
-    const preisEl = document.getElementById("gesamtpreis");
     const weiterBtn = document.getElementById("weiter-btn");
 
-    liste.innerHTML = "";
+    liste.replaceChildren();
     if (paket.komponenten.length === 0) {
         const leer = document.createElement("li");
         leer.className = "leer-hinweis";
-        leer.textContent = "Noch keine Komponente ausgewählt.";
+        leer.textContent = "Noch nichts ausgewählt. Wähle links eine Komponente oder lade eine Vorlage.";
         liste.appendChild(leer);
     } else {
-        const gruppen = new Map();
-        paket.komponenten.forEach(komponente => {
-            const gruppe = gruppen.get(komponente.id);
-            if (gruppe) {
-                gruppe.anzahl += 1;
-            } else {
-                gruppen.set(komponente.id, { komponente, anzahl: 1 });
-            }
-        });
-
-        gruppen.forEach(({ komponente, anzahl }) => {
+        gruppiere(paket.komponenten).forEach(({ komponente, anzahl }) => {
             const eintrag = document.createElement("li");
             const name = document.createElement("span");
-            const entfernen = document.createElement("button");
-            name.textContent = `${komponente.name} x${anzahl}`;
-            entfernen.className = "remove-btn";
-            entfernen.type = "button";
-            entfernen.textContent = "entfernen";
-            entfernen.addEventListener("click", () => komponenteEntfernen(komponente.id));
-            eintrag.append(name, entfernen);
+            const betrag = document.createElement("span");
+            const weniger = document.createElement("button");
+
+            if (komponente.id === geaendertId) eintrag.className = "geaendert";
+            name.textContent = anzahl > 1 ? `${komponente.name} ×${anzahl}` : komponente.name;
+            betrag.className = "betrag";
+            betrag.textContent = formatiereEuro(komponente.preis * anzahl);
+            weniger.type = "button";
+            weniger.textContent = "eins weniger";
+            weniger.setAttribute("aria-label", `${komponente.name}: eins weniger`);
+            weniger.addEventListener("click", () => komponenteEntfernen(komponente.id));
+            eintrag.append(name, betrag, weniger);
             liste.appendChild(eintrag);
         });
     }
 
-    preisEl.innerHTML = `${formatiereEuro(paket.monatspreis)}&nbsp;€<span> /Monat</span>`;
+    document.getElementById("gesamtpreis").textContent = formatiereEuro(paket.monatspreis);
     weiterBtn.disabled = paket.komponenten.length === 0;
     aktualisiereBerechnung();
 }
 
 function weiterZumWarenkorb() {
-    const energiekosten = Number(document.getElementById("energiekosten").value);
-    if (!Number.isFinite(energiekosten) || energiekosten <= 0) {
+    const energiekosten = energiekostenAusEingabe();
+    if (energiekosten === null) {
         document.getElementById("energiekosten").focus();
         aktualisiereBerechnung();
         return;
@@ -148,6 +175,20 @@ function weiterZumWarenkorb() {
 }
 
 document.getElementById("energiekosten").addEventListener("input", aktualisiereBerechnung);
+document.getElementById("weiter-btn").addEventListener("click", weiterZumWarenkorb);
+
+document.getElementById("komponenten-liste").addEventListener("click", ereignis => {
+    const knopf = ereignis.target.closest("[data-komponente]");
+    if (knopf) komponenteHinzufuegen(knopf.dataset.komponente);
+});
+
+document.querySelectorAll("[data-vorlage]").forEach(knopf => {
+    knopf.addEventListener("click", () => {
+        if (knopf.dataset.vorlage === "leer") paketZuruecksetzen();
+        else ladeVorlage(knopf.dataset.vorlage);
+    });
+});
+
 renderKomponenten();
 
 const parameter = new URLSearchParams(window.location.search);

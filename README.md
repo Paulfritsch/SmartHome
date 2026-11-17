@@ -34,10 +34,11 @@ Der PHP-Prototyp hat ein Konto-System mit SQLite-Datenbank (eine Datei, kein Ser
 Voraussetzung: PHP 8.1+ mit `pdo_sqlite` und `composer install`.
 
 ```
-php -S localhost:8000 -t prototype/public
+php -S localhost:8000 prototype/router.php
 ```
 
-Danach `http://localhost:8000` öffnen:
+Der Router liefert die Website (Startseite, Konfigurator, Warenkorb) und den Prototyp unter einer Adresse aus.
+Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://localhost:8000` öffnen:
 
 1. **Konto anlegen** mit Name, E-Mail, Passwort (min. 8 Zeichen) und eigenem Strompreis (€/kWh).
    Mit dem Häkchen „Beispielwohnung“ entstehen drei Räume mit Dummy-Geräten.

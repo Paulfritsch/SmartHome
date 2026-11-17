@@ -108,7 +108,7 @@ function pageStart(string $title, ?User $user = null): void
 </head>
 <body>
 <header class="kopf">
-    <a class="marke" href="index.php">SmartSave</a>
+    <a class="marke" href="/">SmartSave</a>
     <?php if ($user !== null): ?>
         <form method="post" action="logout.php" class="abmelden">
             <?= csrfField() ?>

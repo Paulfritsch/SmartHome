@@ -9,7 +9,7 @@ test("Komponenten können hinzugefügt und einzeln entfernt werden", () => {
     builder.addKomponente("led").addKomponente("led");
 
     assert.equal(builder.build().komponenten.length, 2);
-    assert.equal(builder.build().monatspreis, 9.98);
+    assert.equal(builder.build().monatspreis, 2.38);
 
     builder.build().removeKomponente("led");
     assert.equal(builder.build().komponenten.length, 1);
@@ -20,7 +20,7 @@ test("Starter-Paket enthält die erwarteten Komponenten und Preise", () => {
     const paket = new PaketKonfigurator(builder).buildStarterPaket();
 
     assert.deepEqual(paket.komponenten.map(komponente => komponente.id), ["led", "led", "bewegung"]);
-    assert.equal(paket.monatspreis, 17.97);
+    assert.equal(paket.monatspreis, 4.17);
     assert.equal(paket.ersparnisProzent, 7);
     assert.equal(paket.berechneErsparnis(120), 8.4);
 });
@@ -30,7 +30,7 @@ test("Komfort-Paket enthält die erwarteten Komponenten und Preise", () => {
     const paket = new PaketKonfigurator(builder).buildKomfortPaket();
 
     assert.equal(paket.komponenten.length, 7);
-    assert.equal(paket.monatspreis, 42.93);
+    assert.equal(paket.monatspreis, 11.33);
     assert.equal(paket.ersparnisProzent, 19);
 });
 
@@ -45,4 +45,18 @@ test("Ersparnis wird bei 30 Prozent gedeckelt", () => {
 test("Unbekannte Komponenten werden abgelehnt", () => {
     const builder = new SmartHomePaketBuilder();
     assert.throws(() => builder.addKomponente("unbekannt"), /Unbekannte Komponente/);
+});
+
+test("bei 120 € Energiekosten sparen beide Fertigpakete mehr, als sie kosten", () => {
+  for (const bauen of ["buildStarterPaket", "buildKomfortPaket"]) {
+    const paket = new PaketKonfigurator(new SmartHomePaketBuilder())[bauen]();
+    assert.ok(paket.berechneErsparnis(120) > paket.monatspreis, bauen);
+  }
+});
+
+test("jede Komponente rechnet sich ab etwa 60 € Energiekosten im Monat", () => {
+  for (const k of KOMPONENTEN) {
+    const schwelle = k.preis / (k.ersparnisProzent / 100);
+    assert.ok(schwelle <= 62, `${k.id}: ${schwelle.toFixed(1)} €`);
+  }
 });

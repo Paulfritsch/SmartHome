@@ -3,129 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartSave – Smart wohnen, einfach sparen</title>
+<title>SmartSave: Smart Home im Abo, nach 24 Monaten dein Eigentum</title>
+<meta name="description" content="Smarte Lampen, Bewegungsmelder, Sensoren und Steckdosen im Abo. Ohne Anzahlung, nach 24 Monaten gehört dir die Technik. Schulprojekt, kein echtes Angebot.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231C3FD8'/%3E%3Cpath d='M18 5 9 18h6l-1 9 9-13h-6z' fill='%23FFD426'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="home-page">
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="ico-led" viewBox="0 0 32 32"><path d="M16 4a8 8 0 0 0-4.6 14.5c.9.7 1.6 1.7 1.6 2.9V22h6v-.6c0-1.2.7-2.2 1.6-2.9A8 8 0 0 0 16 4z"/><path d="M13 26h6M14 29h4"/></symbol>
+  <symbol id="ico-bewegung" viewBox="0 0 32 32"><path d="M4 27h24"/><path d="M8 27a8 8 0 0 1 16 0"/><path d="M11 17.5a7 7 0 0 1 10 0"/><path d="M8 13.2a11.5 11.5 0 0 1 16 0"/></symbol>
+  <symbol id="ico-temperatur" viewBox="0 0 32 32"><path d="M13 18.2V7a3 3 0 0 1 6 0v11.2a5.5 5.5 0 1 1-6 0z"/><path d="M16 13v10"/><circle cx="16" cy="23.5" r="1.9" fill="currentColor" stroke="none"/><path d="M22.5 8.5H26M22.5 13H26"/></symbol>
+  <symbol id="ico-steckdose" viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5"/><circle cx="16" cy="16" r="6.5"/><circle cx="13" cy="16" r="1.3" fill="currentColor" stroke="none"/><circle cx="19" cy="16" r="1.3" fill="currentColor" stroke="none"/><path d="M16 9.5v2M16 20.5v2"/></symbol>
+</svg>
+<a class="skip" href="#inhalt">Zum Inhalt springen</a>
 
-<nav class="site-nav wrap">
-  <div class="logo"><a href="index.html">SmartSave</a></div>
-  <div class="nav-links">
-    <a href="#funktion">So funktioniert's</a>
-    <a href="#pakete">Pakete</a>
-    <a href="#warum">Vorteile</a>
-  </div>
-  <a class="nav-cta" href="konfigurator.html">Paket zusammenstellen</a>
-</nav>
-
-<header class="hero wrap">
-  <div class="hero-grid">
-    <div>
-      <p class="eyebrow">Smart wohnen. Einfach sparen.</p>
-      <h1>Weniger Energie. Mehr Zuhause.</h1>
-      <div class="hero-ctas">
-        <a class="btn-primary" href="konfigurator.html">Paket zusammenstellen</a>
-        <a class="btn-secondary" href="#pakete">Pakete ansehen</a>
-      </div>
-      <p class="hero-note">24 Monate Laufzeit · Support inklusive · Hardware danach dein Eigentum</p>
+<header class="hero">
+  <div class="wrap">
+    <div class="kopf">
+      <a class="wortmarke" href="index.html">SmartSave</a>
+      <nav class="kopf-links" aria-label="Seitenübersicht">
+        <a href="#komponenten">Komponenten</a>
+        <a href="#pakete">Pakete</a>
+        <a href="#ablauf">Ablauf</a>
+        <a href="#schaetzung">Ersparnis</a>
+      </nav>
+      <a class="btn btn-marker" href="konfigurator.html">Paket zusammenstellen</a>
+      <a class="kopf-login" href="login.php">Login</a>
     </div>
 
-    <div class="home-preview" aria-label="Vorschau der SmartSave App">
-      <div class="preview-window">
-        <div class="preview-top">
-          <span class="preview-title">Mein Zuhause</span>
-          <span class="live-pill">● Live</span>
-        </div>
-        <div class="energy-card">
-          <div class="energy-label">Verbrauch in diesem Monat</div>
-          <div class="energy-value">84,2 kWh <span>−18 %</span></div>
-          <div class="mini-chart" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="preview-devices">
-          <div class="preview-device"><span class="device-icon">☼</span><span>Licht<span class="device-state">3 Geräte aktiv</span></span></div>
-          <div class="preview-device"><span class="device-icon">↯</span><span>Steckdosen<span class="device-state">2 Geräte aktiv</span></span></div>
+    <div class="hero-grid">
+      <h1><span>Smart Home</span> <span>ohne Anzahlung.</span> <span>Nach 24 Monaten</span> <span>gehört es dir.</span></h1>
+      <div class="hero-text">
+        <p>Du holst dir smarte Lampen, Bewegungsmelder, Sensoren und Steckdosen im Abo. Nach 24 Monaten ist die Technik dein Eigentum. Vorher siehst du, was das Abo kostet und was du schätzungsweise sparst.</p>
+        <div class="hero-knoepfe">
+          <a class="btn btn-marker" href="konfigurator.html">Paket zusammenstellen</a>
+          <a class="text-link" href="#pakete">Fertige Pakete ansehen</a>
         </div>
       </div>
     </div>
+
+    <figure class="laufzeit">
+      <figcaption>Dein Abo in 24 Monaten</figcaption>
+      <div class="monate" role="img" aria-label="24 Felder für 24 Monate Abo-Gebühr, danach ein leeres Feld: Die Technik gehört dir.">
+          <span style="--i:0"></span>
+          <span style="--i:1"></span>
+          <span style="--i:2"></span>
+          <span style="--i:3"></span>
+          <span style="--i:4"></span>
+          <span style="--i:5"></span>
+          <span style="--i:6"></span>
+          <span style="--i:7"></span>
+          <span style="--i:8"></span>
+          <span style="--i:9"></span>
+          <span style="--i:10"></span>
+          <span style="--i:11"></span>
+          <span style="--i:12"></span>
+          <span style="--i:13"></span>
+          <span style="--i:14"></span>
+          <span style="--i:15"></span>
+          <span style="--i:16"></span>
+          <span style="--i:17"></span>
+          <span style="--i:18"></span>
+          <span style="--i:19"></span>
+          <span style="--i:20"></span>
+          <span style="--i:21"></span>
+          <span style="--i:22"></span>
+          <span style="--i:23"></span>
+          <span class="danach" style="--i:24"></span>
+      </div>
+      <div class="laufzeit-text" aria-hidden="true">
+        <span>Monat 1 bis 24: du zahlst die Abo-Gebühr</span>
+        <span>Danach: gehört dir</span>
+      </div>
+    </figure>
   </div>
 </header>
 
-<div class="trust-strip">
-  <div class="wrap trust-grid">
-    <div class="trust-item"><span class="trust-number">ab 4,99 €</span><span class="trust-text">pro Komponente im Monat</span></div>
-    <div class="trust-item"><span class="trust-number">24 Monate</span><span class="trust-text">Laufzeit</span></div>
-    <div class="trust-item"><span class="trust-number">bis 30 %</span><span class="trust-text">geschätztes Sparpotenzial</span></div>
-  </div>
-</div>
-
-<main>
-  <section id="funktion" class="light-section">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">So funktioniert's</p>
-        <h2>In drei einfachen Schritten zum smarten Zuhause.</h2>
+<main id="inhalt">
+  <section id="komponenten" class="abschnitt">
+    <div class="wrap abschnitt-grid">
+      <div>
+        <h2>Das steckt im Abo</h2>
+        <p class="abschnitt-intro">Vier Komponenten, einzeln buchbar. Der Preis gilt pro Stück und Monat.</p>
       </div>
-      <div class="step-grid">
-        <article class="step-card"><span class="step-number">01</span><h3>Paket auswählen</h3><p>Nutze eine Vorlage oder kombiniere genau die Geräte, die zu deiner Wohnung passen.</p></article>
-        <article class="step-card"><span class="step-number">02</span><h3>Geräte erhalten</h3><p>Deine Hardware kommt vorbereitet zu dir. Zubehör und Support sind bereits dabei.</p></article>
-        <article class="step-card"><span class="step-number">03</span><h3>Verbrauch senken</h3><p>Verbinde alles mit der App und behalte Verbrauch und mögliche Ersparnis im Blick.</p></article>
+      <ul class="posten">
+        <li>
+          <svg class="piktogramm" aria-hidden="true"><use href="#ico-led"/></svg>
+          <div class="posten-text"><h3>Smarte LED</h3><p>Dimmbar und per App steuerbar.</p><p class="spar">Spart geschätzt bis zu 2 % der Energiekosten.</p></div>
+          <p class="preis">1,19 €<small>pro Monat</small></p>
+        </li>
+        <li>
+          <svg class="piktogramm" aria-hidden="true"><use href="#ico-bewegung"/></svg>
+          <div class="posten-text"><h3>Bewegungsmelder</h3><p>Erkennt Bewegung und löst Automationen aus.</p><p class="spar">Spart geschätzt bis zu 3 % der Energiekosten.</p></div>
+          <p class="preis">1,79 €<small>pro Monat</small></p>
+        </li>
+        <li>
+          <svg class="piktogramm" aria-hidden="true"><use href="#ico-temperatur"/></svg>
+          <div class="posten-text"><h3>Temperatursensor</h3><p>Misst die Temperatur in Echtzeit.</p><p class="spar">Spart geschätzt bis zu 5 % der Energiekosten.</p></div>
+          <p class="preis">2,99 €<small>pro Monat</small></p>
+        </li>
+        <li>
+          <svg class="piktogramm" aria-hidden="true"><use href="#ico-steckdose"/></svg>
+          <div class="posten-text"><h3>Smarte Steckdose</h3><p>Schaltet Geräte und misst deren Stromverbrauch.</p><p class="spar">Spart geschätzt bis zu 4 % der Energiekosten.</p></div>
+          <p class="preis">2,39 €<small>pro Monat</small></p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="pakete" class="abschnitt">
+    <div class="wrap abschnitt-grid">
+      <div>
+        <h2>Zwei fertige Pakete</h2>
+        <p class="abschnitt-intro">App-Zugang und Support sind in jedem Preis enthalten.</p>
+      </div>
+      <div>
+        <table class="vergleich">
+          <caption class="sr-only">Vergleich der Pakete Starter und Komfort</caption>
+          <thead>
+            <tr><td></td><th scope="col">Starter</th><th scope="col">Komfort</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Smarte LED</th><td>2</td><td>4</td></tr>
+            <tr><th scope="row">Bewegungsmelder</th><td>1</td><td>2</td></tr>
+            <tr><th scope="row">Temperatursensor</th><td class="nicht"><span aria-hidden="true">–</span><span class="sr-only">nicht enthalten</span></td><td>1</td></tr>
+            <tr class="summe"><th scope="row">Pro Monat</th><td>4,17 €</td><td>11,33 €</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td></td><td><a class="btn btn-blau" href="konfigurator.html?paket=starter">Starter wählen</a></td><td><a class="btn btn-blau" href="konfigurator.html?paket=komfort">Komfort wählen</a></td></tr>
+          </tfoot>
+        </table>
+        <p class="vergleich-hinweis">Du brauchst etwas anderes? <a class="text-link" href="konfigurator.html">Stell dir dein Paket selbst zusammen.</a> Jede Komponente kostet zwischen 1,19 € und 2,99 € im Monat.</p>
       </div>
     </div>
   </section>
 
-  <section id="pakete" class="packages">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Abonnements</p>
-        <h2>Ein Paket, das zu deinem Alltag passt.</h2>
-        <p>Alle Varianten enthalten den App-Zugang und persönlichen Support.</p>
+  <section id="ablauf" class="abschnitt">
+    <div class="wrap abschnitt-grid">
+      <div>
+        <h2>So läuft es ab</h2>
       </div>
-      <div class="package-grid">
-        <article class="package-card">
-          <span class="plan-label">KLEIN STARTEN</span>
-          <div class="p-name">Starter</div>
-          <p class="p-desc">Für einzelne Räume und den ersten Schritt ins Smart Home.</p>
-          <div class="p-price">17,97 € <span>/ Monat</span></div>
-          <ul><li>2 smarte LEDs</li><li>1 Bewegungsmelder</li><li>App-Zugang &amp; Support</li></ul>
-          <a href="konfigurator.html?paket=starter">Starter wählen</a>
-        </article>
-
-        <article class="package-card highlight">
-          <span class="plan-label">BELIEBTESTE WAHL</span>
-          <div class="p-name">Komfort</div>
-          <p class="p-desc">Mehr Geräte für mehrere Räume und bessere Automationen.</p>
-          <div class="p-price">42,93 € <span>/ Monat</span></div>
-          <ul><li>4 smarte LEDs</li><li>2 Bewegungsmelder</li><li>1 Temperatursensor</li><li>App-Zugang &amp; Support</li></ul>
-          <a href="konfigurator.html?paket=komfort">Komfort wählen</a>
-        </article>
-
-        <article class="package-card">
-          <span class="plan-label">FLEXIBEL</span>
-          <div class="p-name">Individuell</div>
-          <p class="p-desc">Du entscheidest selbst, welche Komponenten du wirklich brauchst.</p>
-          <div class="p-price">ab 4,99 € <span>/ Komponente</span></div>
-          <ul><li>Frei kombinierbar</li><li>Nur zahlen, was du nutzt</li><li>App-Zugang &amp; Support</li></ul>
-          <a href="konfigurator.html">Selbst zusammenstellen</a>
-        </article>
-      </div>
+      <ol class="ablauf">
+        <li><h3>Paket zusammenstellen</h3><p>Wähle eine Vorlage oder einzelne Komponenten und trag deine Energiekosten ein. Abo-Preis und geschätzte Ersparnis siehst du nebeneinander.</p></li>
+        <li><h3>Bestellen</h3><p>Für die Technik zahlst du nichts im Voraus. Die Abo-Gebühr bezahlst du monatlich.</p></li>
+        <li><h3>Selbst einrichten</h3><p>Die Geräte kommen per Post. Eine App führt dich durch die Einrichtung, für die Grundausstattung brauchst du keinen Elektriker.</p></li>
+        <li><h3>Nach 24 Monaten gehört sie dir</h3><p>Die Abo-Gebühr endet, die Technik behältst du. Auf Wunsch gibt es einen Anschlussvertrag für Wartung oder Erweiterung.</p></li>
+      </ol>
     </div>
   </section>
 
-  <section id="warum" class="light-section">
-    <div class="wrap">
-      <div class="section-head"><p class="eyebrow">Warum SmartSave</p><h2>Transparent von der Auswahl bis zur Ersparnis.</h2></div>
-      <div class="why-grid">
-        <article class="why-item"><h3>Kein hoher Kaufpreis</h3><p>Die Kosten verteilen sich planbar über 24 Monate.</p></article>
-        <article class="why-item"><h3>Ersparnis direkt sehen</h3><p>Der Rechner vergleicht deine Schätzung mit den monatlichen Kosten.</p></article>
-        <article class="why-item"><h3>Support inklusive</h3><p>Bei Fragen zur Einrichtung bekommst du Hilfe direkt über die App.</p></article>
+  <section id="schaetzung" class="abschnitt">
+    <div class="wrap abschnitt-grid">
+      <div>
+        <h2>Wie wir die Ersparnis schätzen</h2>
+      </div>
+      <div class="abschnitt-text">
+        <p>Jede Komponente spart in unserer Annahme einen festen Anteil deiner monatlichen Energiekosten: 2 % bei der LED, 3 % beim Bewegungsmelder, 4 % bei der Steckdose und 5 % beim Temperatursensor. Zusammen sind es höchstens 30 %.</p>
+        <p>Das sind Annahmen für dieses Schulprojekt, keine Messwerte und keine Energieberatung.</p>
+        <p>Im Konfigurator trägst du deine eigenen Energiekosten ein und siehst, was das Abo kostet und was du schätzungsweise sparst. Bei jeder Komponente liegt die Gewinnschwelle bei etwa 60 € Energiekosten im Monat. Darunter kostet das Abo mehr, als es spart, und das steht im Konfigurator genauso da.</p>
+        <a class="text-link" href="konfigurator.html">Mit deinen Energiekosten rechnen</a>
       </div>
     </div>
   </section>
-
 </main>
 
-<footer class="site-footer wrap"><span>SmartSave</span><span>© 2026</span></footer>
+<footer class="wrap fuss">
+  <a class="wortmarke" href="index.html">SmartSave</a>
+  <p>SmartSave ist ein Schulprojekt (Berufsschule, Lernfeld 10). Preise und Ersparnis sind Annahmen, es gibt kein echtes Angebot.</p>
+</footer>
 </body>
 </html>

@@ -1,3 +1,6 @@
+const MAX_ERSPARNIS_PROZENT = 30;
+const LAUFZEIT_MONATE = 24;
+
 //Product
 
 class SmartHomePaket {
@@ -21,7 +24,7 @@ class SmartHomePaket {
 
     get ersparnisProzent() {
         const prozent = this.komponenten.reduce((summe, k) => summe + k.ersparnisProzent, 0);
-        return Math.min(prozent, 30);
+        return Math.min(prozent, MAX_ERSPARNIS_PROZENT);
     }
 
     berechneErsparnis(monatlicheEnergiekosten) {
@@ -78,5 +81,5 @@ class PaketKonfigurator {
 }
 
 if (typeof module !== "undefined") {
-    module.exports = { SmartHomePaket, PaketBuilder, SmartHomePaketBuilder, PaketKonfigurator };
+    module.exports = { SmartHomePaket, PaketBuilder, SmartHomePaketBuilder, PaketKonfigurator, MAX_ERSPARNIS_PROZENT, LAUFZEIT_MONATE };
 }
