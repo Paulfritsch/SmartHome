@@ -128,6 +128,17 @@ final class Subscription
         return round($this->currentSavings() - $this->currentFee(), 2);
     }
 
+    // Wie viel Prozent der aktuellen Abo-Gebuehr die Ersparnis deckt (100 = Komfort ist kostenlos)
+    public function coveragePercent(): int
+    {
+        $fee = $this->currentFee();
+        if ($fee <= 0.0) {
+            return 100;
+        }
+
+        return (int) max(0, floor($this->currentSavings() / $fee * 100));
+    }
+
     // Seit Beginn der Laufzeit effektiv gespart (nach Abzug aller Gebuehren)
     public function effectiveSoFar(): float
     {

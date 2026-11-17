@@ -173,8 +173,15 @@ pageStart('Meine Wohnung', $user);
                     <dt>Effektiv gespart pro Monat</dt><dd><?= e(signedEuro($subscription->effectiveMonthly())) ?></dd>
                 </div>
             </dl>
-            <?php if ($subscription->effectiveMonthly() < 0): ?>
-                <p class="klein">Aktuell kostet das Abo mehr, als du bei den Stromkosten sparst. Schalte mehr Geräte per Zeitplan ab, oder buche weniger Zusatztechnik.</p>
+            <?php if (!$subscription->isFinished()): ?>
+                <?php $deckung = $subscription->coveragePercent(); ?>
+                <label for="deckung" class="laufzeit-label">Dein Abo finanziert sich zu <?= e($deckung) ?> % selbst</label>
+                <progress id="deckung" max="100" value="<?= e(min(100, $deckung)) ?>"><?= e($deckung) ?> %</progress>
+                <?php if ($subscription->effectiveMonthly() >= 0): ?>
+                    <p class="klein">Die Ersparnis deckt das ganze Abo. Der Komfort kostet dich nichts, es bleiben sogar <?= e(euro($subscription->effectiveMonthly())) ?> pro Monat übrig.</p>
+                <?php else: ?>
+                    <p class="klein">Für den Komfort zahlst du <?= e(euro(-$subscription->effectiveMonthly())) ?> pro Monat drauf. Mit Zeitplänen (abends und morgens ausschalten) oder einem Heizkörperthermostat sinkt das.</p>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
         <div>

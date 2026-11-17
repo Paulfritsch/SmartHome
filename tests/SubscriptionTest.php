@@ -218,4 +218,26 @@ final class SubscriptionTest extends TestCase
         $this->assertSame(0.0, Catalog::baseSaving(-5.0));
         $this->assertSame(24.0, Catalog::maxSavings(80.0));   // 30 %
     }
+
+    /** @dataProvider coverageCases */
+    public function testCoverageShowsHowMuchOfTheFeeTheSavingsPay(float $savings, int $expected): void
+    {
+        $this->assertSame($expected, (new Subscription($savings, [], 0))->coveragePercent());
+    }
+
+    /** @return array<string, array{float, int}> */
+    public static function coverageCases(): array
+    {
+        return [
+            'nichts' => [0.0, 0],
+            'halb' => [2.995, 50],
+            'genau gedeckt' => [5.99, 100],
+            'mehr als gedeckt' => [12.0, 200],
+        ];
+    }
+
+    public function testCoverageIsFullAfterTheTerm(): void
+    {
+        $this->assertSame(100, (new Subscription(0.0, [], 24))->coveragePercent());
+    }
 }
