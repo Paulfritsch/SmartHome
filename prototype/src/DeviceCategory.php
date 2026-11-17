@@ -22,7 +22,7 @@ enum DeviceCategory: string
         };
     }
 
-    // Anteil der ausgeschalteten Zeit, der als Ersparnis zaehlt (Annahmen fuer das Schulprojekt)
+    // Anteil der gesparten Stunden (siehe Schedule), der als Ersparnis zaehlt (Annahmen fuer das Schulprojekt)
     public function savingsFactor(): float
     {
         return match ($this) {

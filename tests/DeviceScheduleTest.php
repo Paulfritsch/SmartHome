@@ -26,37 +26,61 @@ final class DeviceScheduleTest extends TestCase
         return $device;
     }
 
-    public function testHeatingSavesProportionallyToOffTime(): void
+    public function testHeatingSavesEightHoursPerDayWhenSwitchedOffAtNight(): void
     {
-        // 1 kW * 6 h/Tag * 30 Tage = 180 kWh; 8 von 24 Stunden aus -> ein Drittel (60 kWh) faellt weg
-        $device = $this->device(DeviceCategory::Heating, new Schedule('22:00', '06:00'));
+        // 1 kW * 12 h/Tag * 30 Tage = 360 kWh; 8 Stunden Schlaf fallen weg: 1 kW * 8 h * 30 = 240 kWh
+        $device = $this->device(DeviceCategory::Heating, new Schedule('22:00', '06:00'), 1000.0, 12.0);
 
-        $this->assertEqualsWithDelta(180.0, $device->getMonthlyConsumptionWithoutScheduleKwh(), 0.0001);
-        $this->assertEqualsWithDelta(60.0, $device->getScheduleSavingsKwh(), 0.0001);
+        $this->assertEqualsWithDelta(360.0, $device->getMonthlyConsumptionWithoutScheduleKwh(), 0.0001);
+        $this->assertEqualsWithDelta(240.0, $device->getScheduleSavingsKwh(), 0.0001);
         $this->assertEqualsWithDelta(120.0, $device->getMonthlyConsumptionKwh(), 0.0001);
     }
 
-    public function testLightSavesLikeHeating(): void
+    public function testSavingsAreCappedByDailyRuntime(): void
     {
-        $device = $this->device(DeviceCategory::Light, new Schedule('22:00', '06:00'), 100.0, 4.0);
+        // laeuft nur 6 h am Tag: mehr als 6 h koennen nicht wegfallen
+        $device = $this->device(DeviceCategory::Heating, new Schedule('22:00', '06:00'), 1000.0, 6.0);
 
-        // 0,1 kW * 4 h * 30 = 12 kWh; ein Drittel = 4 kWh
-        $this->assertEqualsWithDelta(4.0, $device->getScheduleSavingsKwh(), 0.0001);
+        $this->assertEqualsWithDelta(180.0, $device->getScheduleSavingsKwh(), 0.0001);
+        $this->assertEqualsWithDelta(0.0, $device->getMonthlyConsumptionKwh(), 0.0001);
+    }
+
+    public function testSwitchingOffInTheMorningSavesEightHoursToo(): void
+    {
+        $device = $this->device(DeviceCategory::Light, new Schedule('07:30', '15:30'), 100.0, 10.0);
+
+        $this->assertSame(8.0, $device->getScheduleSavedHoursPerDay());
+        $this->assertEqualsWithDelta(24.0, $device->getScheduleSavingsKwh(), 0.0001); // 0,1 kW * 8 h * 30
+    }
+
+    public function testSwitchingOffDuringTheDaySavesNothing(): void
+    {
+        $device = $this->device(DeviceCategory::Light, new Schedule('12:00', '20:00'), 100.0, 10.0);
+
+        $this->assertSame(0.0, $device->getScheduleSavingsKwh());
+        $this->assertEqualsWithDelta(30.0, $device->getMonthlyConsumptionKwh(), 0.0001);
+    }
+
+    public function testShortOffWindowSavesOnlyItsLength(): void
+    {
+        $device = $this->device(DeviceCategory::Light, new Schedule('23:00', '05:00'), 100.0, 10.0);
+
+        $this->assertEqualsWithDelta(18.0, $device->getScheduleSavingsKwh(), 0.0001); // 0,1 kW * 6 h * 30
     }
 
     public function testSocketSavesNothing(): void
     {
-        $device = $this->device(DeviceCategory::Socket, new Schedule('22:00', '06:00'));
+        $device = $this->device(DeviceCategory::Socket, new Schedule('22:00', '06:00'), 1000.0, 12.0);
 
         $this->assertSame(0.0, $device->getScheduleSavingsKwh());
-        $this->assertEqualsWithDelta(180.0, $device->getMonthlyConsumptionKwh(), 0.0001);
+        $this->assertEqualsWithDelta(360.0, $device->getMonthlyConsumptionKwh(), 0.0001);
     }
 
     public function testOtherDevicesSaveOnlyStandbyShare(): void
     {
-        $device = $this->device(DeviceCategory::Other, new Schedule('22:00', '06:00'));
+        $device = $this->device(DeviceCategory::Other, new Schedule('22:00', '06:00'), 1000.0, 12.0);
 
-        $this->assertEqualsWithDelta(6.0, $device->getScheduleSavingsKwh(), 0.0001); // 10 % von 60 kWh
+        $this->assertEqualsWithDelta(24.0, $device->getScheduleSavingsKwh(), 0.0001); // 10 % von 240 kWh
     }
 
     public function testNoScheduleMeansNoSavings(): void
@@ -83,15 +107,15 @@ final class DeviceScheduleTest extends TestCase
 
     public function testDashboardSumsScheduleSavingsAndLowersCost(): void
     {
-        $heizung = $this->device(DeviceCategory::Heating, new Schedule('22:00', '06:00')); // spart 60 kWh
-        $steckdose = $this->device(DeviceCategory::Socket, new Schedule('22:00', '06:00')); // spart 0
+        $heizung = $this->device(DeviceCategory::Heating, new Schedule('22:00', '06:00'), 1000.0, 10.0); // 300 kWh, spart 240
+        $steckdose = $this->device(DeviceCategory::Socket, new Schedule('22:00', '06:00'), 1000.0, 10.0); // 300 kWh, spart 0
 
         $dashboard = Dashboard::forUser(150.0, 0.30, [$heizung, $steckdose]);
 
-        $this->assertEqualsWithDelta(60.0, $dashboard->getScheduleSavingsKwh(), 0.0001);
-        $this->assertEqualsWithDelta(18.0, $dashboard->getScheduleSavings(), 0.0001);
-        // Verbrauch 120 + 180 = 300 kWh -> 90 EUR statt 108 EUR ohne Zeitplaene
-        $this->assertEqualsWithDelta(90.0, $dashboard->getNewMonthlyCost(), 0.0001);
+        $this->assertEqualsWithDelta(240.0, $dashboard->getScheduleSavingsKwh(), 0.0001);
+        $this->assertEqualsWithDelta(72.0, $dashboard->getScheduleSavings(), 0.0001);
+        // Verbrauch 60 + 300 = 360 kWh -> 108 EUR statt 180 EUR ohne Zeitplaene
+        $this->assertEqualsWithDelta(108.0, $dashboard->getNewMonthlyCost(), 0.0001);
     }
 
     public function testDevicesWithSameNameDoNotOverwriteEachOther(): void

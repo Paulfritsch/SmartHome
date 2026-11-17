@@ -28,14 +28,56 @@ final class ScheduleTest extends TestCase
         $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 22:00')));
     }
 
-    public function testWithoutOnTimeDeviceStaysOffUntilMidnight(): void
+    public function testWithoutOnTimeEightHoursAreAssumed(): void
     {
-        $schedule = new Schedule('18:00');
+        $schedule = new Schedule('22:00');
 
-        $this->assertSame(6.0, $schedule->offHoursPerDay());
+        $this->assertSame(8.0, $schedule->offHoursPerDay());
         $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 23:59')));
-        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 00:00')));
-        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 17:59')));
+        $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 05:59')));
+        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 06:00')));
+        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 21:59')));
+    }
+
+    /** @dataProvider savingReasons */
+    public function testSavingReasonDependsOnTimeOfDay(string $off, ?string $reason): void
+    {
+        $this->assertSame($reason, (new Schedule($off, null))->savingReason());
+    }
+
+    public static function savingReasons(): array
+    {
+        return [
+            '18:00 abends' => ['18:00', 'Schlaf'],
+            '22:30 abends' => ['22:30', 'Schlaf'],
+            '00:30 nachts' => ['00:30', 'Schlaf'],
+            '03:59 nachts' => ['03:59', 'Schlaf'],
+            '04:00 morgens' => ['04:00', 'Arbeit'],
+            '07:15 morgens' => ['07:15', 'Arbeit'],
+            '10:59 morgens' => ['10:59', 'Arbeit'],
+            '11:00 tagsueber' => ['11:00', null],
+            '14:00 tagsueber' => ['14:00', null],
+            '17:59 tagsueber' => ['17:59', null],
+        ];
+    }
+
+    public function testCreditedHoursAreCappedAtEight(): void
+    {
+        $this->assertSame(8.0, (new Schedule('22:00', '06:00'))->creditedHoursPerDay());
+        $this->assertSame(8.0, (new Schedule('21:00', '08:00'))->creditedHoursPerDay()); // 11 h Pause, 8 h zaehlen
+        $this->assertSame(8.0, (new Schedule('07:00'))->creditedHoursPerDay());
+    }
+
+    public function testCreditedHoursAreNeverMoreThanTheOffWindow(): void
+    {
+        $this->assertSame(6.0, (new Schedule('23:00', '05:00'))->creditedHoursPerDay());
+        $this->assertSame(2.0, (new Schedule('22:00', '00:00'))->creditedHoursPerDay());
+    }
+
+    public function testNoCreditDuringTheDay(): void
+    {
+        $this->assertSame(0.0, (new Schedule('12:00', '20:00'))->creditedHoursPerDay());
+        $this->assertSame(0.0, (new Schedule('14:00'))->creditedHoursPerDay());
     }
 
     public function testTimesWithSecondsAreAccepted(): void
@@ -73,6 +115,6 @@ final class ScheduleTest extends TestCase
     public function testDescribe(): void
     {
         $this->assertSame('aus 22:00 bis 06:00', (new Schedule('22:00', '06:00'))->describe());
-        $this->assertSame('aus ab 22:00', (new Schedule('22:00'))->describe());
+        $this->assertSame('aus ab 22:00 (ca. 8 Std.)', (new Schedule('22:00'))->describe());
     }
 }

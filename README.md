@@ -46,10 +46,14 @@ Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://loca
    Geräte pro Raum hinzufügen (Name, Watt, Stunden pro Tag), per Klick an- und ausschalten.
    Verbrauch, Kosten und Ersparnis werden mit dem Strompreis des Nutzers neu berechnet.
 3. **Zeitpläne:** Pro Gerät „ausschalten um …“ und optional „wieder einschalten um …“ (ohne Einschaltzeit
-   bleibt es bis Mitternacht aus). Das Dashboard zeigt die Ersparnis je Gerät und insgesamt. Gerechnet wird
-   anteilig zur ausgeschalteten Zeit (Annahme: gleichmäßige Nutzung über den Tag). Je nach Geräteart zählt
-   das unterschiedlich: Licht und Heizung 100 %, Steckdose 0 %, sonstige Geräte nur Standby (10 %).
-   Die Faktoren stehen in `prototype/src/DeviceCategory.php`.
+   rechnen wir mit 8 Stunden Pause). Das Dashboard zeigt die Ersparnis je Gerät und insgesamt.
+   Annahmen für die Rechnung:
+   - Nur wer **abends** (ab 18 Uhr, Schlaf) oder **morgens** (4 bis 11 Uhr, Arbeit) ausschaltet, spart etwas.
+     Tagsüber ausschalten zählt nicht.
+   - Es zählen **höchstens 8 Stunden pro Tag**, nie mehr als die Pause selbst und nie mehr, als das Gerät täglich läuft.
+   - Steckdose: keine Ersparnis (0 %), sonstige Geräte nur Standby (10 %), Licht und Heizung voll (100 %).
+
+   Die Werte stehen in `prototype/src/Schedule.php` und `prototype/src/DeviceCategory.php`.
 4. **Nur eigene Daten:** Jede Datenbankabfrage ist an die Nutzer-ID gebunden.
 
 Die Datenbank liegt in `prototype/data/smartsave.sqlite` (nicht im Git). Zum Zurücksetzen die Datei löschen.

@@ -185,10 +185,13 @@ pageStart('Meine Wohnung', $user);
                                     <span class="klein zeitplan">Zeitplan: <?= e($schedule->describe()) ?> ·
                                         <?php if ($device->getCategory()->savingsFactor() === 0.0): ?>
                                             spart nichts (<?= e($device->getCategory()->label()) ?>)
+                                        <?php elseif ($schedule->savingReason() === null): ?>
+                                            spart nichts (nur abends oder morgens ausschalten zählt)
                                         <?php elseif (!$device->isOn()): ?>
                                             gerade ausgeschaltet, keine Ersparnis
                                         <?php else: ?>
                                             spart ca. <?= e(euro($savedKwh * $user->pricePerKwh)) ?> pro Monat
+                                            (<?= e(number_format($device->getScheduleSavedHoursPerDay(), 1, ',', '.')) ?> Std. <?= e($schedule->savingReason()) ?> pro Tag)
                                         <?php endif; ?>
                                     </span>
                                 <?php endif; ?>
@@ -207,7 +210,7 @@ pageStart('Meine Wohnung', $user);
                                     </label>
                                     <label>Ausschalten um <input type="time" name="off_time" value="<?= e($schedule?->offTime ?? '') ?>"></label>
                                     <label>Wieder einschalten um <span class="klein">(optional)</span> <input type="time" name="on_time" value="<?= e($schedule?->onTime ?? '') ?>"></label>
-                                    <p class="klein"><?= e($device->getCategory()->savingsNote()) ?> Ohne Einschaltzeit bleibt das Gerät bis Mitternacht aus.</p>
+                                    <p class="klein"><?= e($device->getCategory()->savingsNote()) ?> Ohne Einschaltzeit rechnen wir mit 8 Stunden Pause.</p>
                                     <button type="submit">Speichern</button>
                                 </form>
                                 <form method="post">
@@ -297,7 +300,7 @@ pageStart('Meine Wohnung', $user);
             <input id="old_cost" name="old_cost" inputmode="decimal" value="<?= e(number_format($user->oldMonthlyCost, 2, ',', '')) ?>" required>
             <button type="submit">Speichern</button>
         </form>
-        <p class="klein">Ersparnis = Energiekosten heute minus berechnete Kosten der eingeschalteten Geräte. Zeitpläne sparen anteilig zur ausgeschalteten Zeit (angenommen: gleichmäßige Nutzung über den Tag). Bei Licht und Heizung zählt die volle Zeit, bei Steckdosen nichts, bei sonstigen Geräten nur der Standby-Anteil. Alles ist eine Simulation mit angenommenen Werten.</p>
+        <p class="klein">Ersparnis = Energiekosten heute minus berechnete Kosten der eingeschalteten Geräte. Zeitpläne zählen nur, wenn abends (ab 18 Uhr, Schlaf) oder morgens (4 bis 11 Uhr, Arbeit) ausgeschaltet wird, mit höchstens 8 Stunden pro Tag und nie mehr, als das Gerät täglich läuft. Bei Steckdosen zählt nichts, bei sonstigen Geräten nur der Standby-Anteil (10 %). Alles ist eine Simulation mit angenommenen Werten.</p>
     </section>
 </div>
 <?php

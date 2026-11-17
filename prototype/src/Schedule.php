@@ -7,10 +7,19 @@ namespace SmartSave;
 use DateTimeInterface;
 
 // Zeitplan eines Geraets: um $offTime ausschalten, optional um $onTime wieder einschalten.
-// Ohne $onTime bleibt das Geraet bis Mitternacht aus. Zeiten im Format "HH:MM".
+// Ohne $onTime rechnen wir mit 8 Stunden Pause. Zeiten im Format "HH:MM".
+//
+// Annahme fuer die Ersparnis: Nur wer abends ausschaltet (Schlaf, ca. 8 Stunden) oder morgens
+// (Arbeit, ca. 8 Stunden) spart wirklich etwas. Tagsueber ausschalten zaehlt nicht als Ersparnis.
 final class Schedule
 {
     private const MINUTES_PER_DAY = 1440;
+
+    public const CREDITED_HOURS_MAX = 8.0;
+    public const ASSUMED_OFF_HOURS = 8;
+    public const EVENING_START = '18:00'; // ab hier bis 03:59 gilt "abends/nachts"
+    public const MORNING_START = '04:00'; // von hier bis 10:59 gilt "morgens"
+    public const MORNING_END = '11:00';
 
     public readonly string $offTime;
     public readonly ?string $onTime;
@@ -55,7 +64,7 @@ final class Schedule
     {
         $off = self::toMinutes($this->offTime);
         if ($this->onTime === null) {
-            return self::MINUTES_PER_DAY - $off;
+            return self::ASSUMED_OFF_HOURS * 60;
         }
         $on = self::toMinutes($this->onTime);
 
@@ -76,10 +85,30 @@ final class Schedule
         return (($now - $off + self::MINUTES_PER_DAY) % self::MINUTES_PER_DAY) < $length;
     }
 
+    // "Schlaf" (abends/nachts ausgeschaltet), "Arbeit" (morgens ausgeschaltet) oder null (tagsueber)
+    public function savingReason(): ?string
+    {
+        $off = self::toMinutes($this->offTime);
+
+        if ($off >= self::toMinutes(self::EVENING_START) || $off < self::toMinutes(self::MORNING_START)) {
+            return 'Schlaf';
+        }
+
+        return $off < self::toMinutes(self::MORNING_END) ? 'Arbeit' : null;
+    }
+
+    // Stunden pro Tag, die als Ersparnis zaehlen: hoechstens 8, nur abends oder morgens, nie mehr als die Pause selbst
+    public function creditedHoursPerDay(): float
+    {
+        return $this->savingReason() === null
+            ? 0.0
+            : min(self::CREDITED_HOURS_MAX, $this->offHoursPerDay());
+    }
+
     public function describe(): string
     {
         return $this->onTime === null
-            ? "aus ab {$this->offTime}"
+            ? "aus ab {$this->offTime} (ca. " . self::ASSUMED_OFF_HOURS . ' Std.)'
             : "aus {$this->offTime} bis {$this->onTime}";
     }
 
