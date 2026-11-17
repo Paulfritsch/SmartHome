@@ -11,7 +11,8 @@ final class Subscription
 {
     /**
      * @param float $monthlySavings Energieersparnis pro Monat (aus dem Dashboard)
-     * @param array<int, array{startMonth: int, monthlyPrice: float}> $bookings gebuchte Zusatztechnik
+     * @param array<int, array{startMonth: int, monthlyPrice: float, monthlySaving?: float}> $bookings gebuchte Zusatztechnik
+     *        (monthlySaving: Ersparnis dieser Technik pro Monat, siehe Catalog::withSavings)
      * @param int $monthsElapsed vergangene Monate der Laufzeit (0 bis 24)
      */
     public function __construct(
@@ -62,6 +63,36 @@ final class Subscription
         return round($sum, 2);
     }
 
+    // Ersparnis der gebuchten Zusatztechnik im Monat $month (ab ihrem Startmonat)
+    public function extraSavingsForMonth(int $month): float
+    {
+        // Auch nach der Laufzeit: die Technik gehoert dem Nutzer und spart weiter
+        $sum = 0.0;
+        foreach ($this->bookings as $booking) {
+            if ($booking['startMonth'] <= $month) {
+                $sum += $booking['monthlySaving'] ?? 0.0;
+            }
+        }
+
+        return round($sum, 2);
+    }
+
+    // Gesamte Ersparnis im Monat $month: Strom-Ersparnis aus dem Dashboard plus Zusatztechnik
+    public function savingsForMonth(int $month): float
+    {
+        return round($this->monthlySavings + $this->extraSavingsForMonth($month), 2);
+    }
+
+    public function currentExtraSavings(): float
+    {
+        return $this->extraSavingsForMonth($this->monthsElapsed());
+    }
+
+    public function currentSavings(): float
+    {
+        return $this->savingsForMonth($this->monthsElapsed());
+    }
+
     // Gebuehr im laufenden (naechsten) Monat
     public function currentFee(): float
     {
@@ -81,7 +112,7 @@ final class Subscription
     // Unterm Strich pro Monat: Ersparnis minus Abo-Gebuehr (negativ = der Nutzer zahlt drauf)
     public function effectiveMonthly(): float
     {
-        return round($this->monthlySavings - $this->currentFee(), 2);
+        return round($this->currentSavings() - $this->currentFee(), 2);
     }
 
     // Seit Beginn der Laufzeit effektiv gespart (nach Abzug aller Gebuehren)
@@ -89,7 +120,7 @@ final class Subscription
     {
         $sum = 0.0;
         for ($month = 0; $month < $this->monthsElapsed(); $month++) {
-            $sum += $this->monthlySavings - $this->feeForMonth($month);
+            $sum += $this->savingsForMonth($month) - $this->feeForMonth($month);
         }
 
         return round($sum, 2);
@@ -97,7 +128,12 @@ final class Subscription
 
     public function totalSavings24(): float
     {
-        return round($this->monthlySavings * Catalog::TERM_MONTHS, 2);
+        $sum = 0.0;
+        for ($month = 0; $month < Catalog::TERM_MONTHS; $month++) {
+            $sum += $this->savingsForMonth($month);
+        }
+
+        return round($sum, 2);
     }
 
     // Alle Gebuehren ueber die gesamte Laufzeit, bei den heute gebuchten Produkten
@@ -119,6 +155,6 @@ final class Subscription
     // Nach Ende der Laufzeit entfallen die Gebuehren: die volle Ersparnis bleibt
     public function monthlyAfterTerm(): float
     {
-        return round($this->monthlySavings, 2);
+        return $this->savingsForMonth(Catalog::TERM_MONTHS - 1);
     }
 }

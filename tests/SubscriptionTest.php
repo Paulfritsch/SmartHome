@@ -112,4 +112,83 @@ final class SubscriptionTest extends TestCase
             $this->assertTrue(Catalog::exists($id), "Basis-Produkt $id fehlt im Katalog");
         }
     }
+
+    public function testExtraTechnologyAddsItsSavingsFromTheStartMonth(): void
+    {
+        $bookings = [
+            ['startMonth' => 0, 'monthlyPrice' => 2.0, 'monthlySaving' => 2.4],
+            ['startMonth' => 12, 'monthlyPrice' => 4.0, 'monthlySaving' => 2.4],
+        ];
+        $subscription = new Subscription(10.0, $bookings, 0);
+
+        $this->assertSame(12.4, $subscription->savingsForMonth(0));
+        $this->assertSame(12.4, $subscription->savingsForMonth(11));
+        $this->assertSame(14.8, $subscription->savingsForMonth(12));
+        $this->assertSame(14.8, $subscription->savingsForMonth(24)); // nach der Laufzeit spart die Technik weiter
+        $this->assertSame(2.4, $subscription->currentExtraSavings());
+        $this->assertSame(10.0, $subscription->monthlySavings());
+        // Monat 0: 12,40 - (5,99 + 2,00) = 4,41
+        $this->assertSame(4.41, $subscription->effectiveMonthly());
+        // 12 * 12,4 + 12 * 14,8 = 326,4
+        $this->assertSame(326.4, $subscription->totalSavings24());
+        $this->assertSame(14.8, $subscription->monthlyAfterTerm());
+    }
+
+    public function testEffectiveSoFarCountsExtraSavingsToo(): void
+    {
+        $bookings = [['startMonth' => 0, 'monthlyPrice' => 1.0, 'monthlySaving' => 3.0]];
+
+        // 6 * (10 + 3 - 5,99 - 1)
+        $this->assertSame(36.06, (new Subscription(10.0, $bookings, 6))->effectiveSoFar());
+    }
+
+    public function testCatalogSavingIsAPercentageOfTheEnergyCost(): void
+    {
+        $this->assertSame(2.4, Catalog::savingForUnits('thermostat', 0, 1, 80.0));   // 3 %
+        $this->assertSame(4.8, Catalog::savingForUnits('thermostat', 0, 2, 80.0));
+        $this->assertSame(0.32, Catalog::savingForUnits('led', 0, 1, 80.0));         // 0,4 %
+        $this->assertSame(0.0, Catalog::savingForUnits('led', 0, 1, 0.0));
+        $this->assertSame(0.0, Catalog::savingForUnits('rakete', 0, 1, 80.0));
+    }
+
+    public function testOnlyTheFirstUsefulUnitsCount(): void
+    {
+        // Steckdose: maxUseful = 2
+        $this->assertSame(0.8, Catalog::savingForUnits('steckdose', 0, 5, 80.0));
+        $this->assertSame(0.4, Catalog::savingForUnits('steckdose', 1, 3, 80.0));
+        $this->assertSame(0.0, Catalog::savingForUnits('steckdose', 2, 1, 80.0));
+    }
+
+    public function testWithSavingsCountsUnitsInBookingOrder(): void
+    {
+        $bookings = [
+            ['id' => 3, 'product' => 'steckdose', 'startMonth' => 0, 'monthlyPrice' => 1.0],
+            ['id' => 1, 'product' => 'steckdose', 'startMonth' => 0, 'monthlyPrice' => 1.0],
+            ['id' => 2, 'product' => 'steckdose', 'startMonth' => 0, 'monthlyPrice' => 1.0],
+        ];
+
+        $result = Catalog::withSavings($bookings, 80.0);
+
+        $this->assertSame([1, 2, 3], array_column($result, 'id'));
+        $this->assertSame([0.4, 0.4, 0.0], array_column($result, 'monthlySaving'));
+    }
+
+    public function testEveryProductHasAPlausibleSavingAndLimit(): void
+    {
+        foreach (Catalog::PRODUCTS as $id => $product) {
+            $this->assertGreaterThan(0, $product['saving'], $id);
+            $this->assertLessThanOrEqual(5, $product['saving'], $id);
+            $this->assertGreaterThanOrEqual(1, $product['maxUseful'], $id);
+        }
+    }
+
+    public function testAllUsefulExtrasTogetherStayBelowThirtyPercentOfTheEnergyCost(): void
+    {
+        $sum = 0.0;
+        foreach (Catalog::PRODUCTS as $id => $product) {
+            $sum += Catalog::savingForUnits($id, 0, 99, 100.0);
+        }
+
+        $this->assertLessThan(30.0, $sum);
+    }
 }

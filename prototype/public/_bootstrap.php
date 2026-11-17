@@ -89,6 +89,19 @@ function signedEuro(float $value): string
     return ($value < 0 ? '−' : '+') . euro(abs($value));
 }
 
+// Kurzer Satz: lohnt sich ein Produkt? Vergleicht seine geschaetzte Ersparnis mit dem Monatspreis.
+function nettoText(float $saving, float $price): string
+{
+    $net = round($saving - $price, 2);
+    if ($saving <= 0.0) {
+        return 'Bringt keine Stromersparnis, dafür Komfort.';
+    }
+
+    return $net >= 0
+        ? 'Spart ca. ' . euro($saving) . ' pro Monat und damit mehr, als es kostet (' . signedEuro($net) . ').'
+        : 'Spart ca. ' . euro($saving) . ' pro Monat, kostet aber ' . euro($price) . ': ' . signedEuro($net) . ' pro Monat netto.';
+}
+
 /** Zeitstempel aus SQLite (UTC) als deutsche Ortszeit. */
 function berlinTime(string $utc): string
 {

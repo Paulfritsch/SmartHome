@@ -62,6 +62,10 @@ Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://loca
    pro Monat, dazu bisher Gespartes, Prognose für 24 Monate und „danach gehört dir alles“.
    Ein Demo-Zeitraffer springt in der Laufzeit vor, damit man nicht 24 Monate warten muss.
    Preise und Produkte stehen zentral in `prototype/src/Catalog.php` (Kalkulation als Kommentar).
+   Zusatztechnik spart auch: Jedes Produkt hat eine geschätzte Ersparnis in Prozent der bisherigen Stromkosten
+   (`saving`, z. B. Heizkörperthermostat 3 %, LED 0,4 %) und eine Höchstzahl sinnvoller Stücke (`maxUseful`).
+   Im Shop und an der Kasse steht, ob sich ein Produkt rechnet (Ersparnis gegen Monatspreis), im Dashboard
+   geht die Ersparnis in „Effektiv gespart“ ein. Die Prozentwerte sind Schätzungen, keine Messwerte.
 5. **Checkout und Bestellungen:** „Dazubuchen“ führt zur Kasse (`checkout.php`): Anzahl (1–5), Lieferadresse und
    der echte Monatspreis für die Restlaufzeit. Als Zahlungsart gibt es nur „Bezahlung vor Ort bei der Lieferung“,
    online wird nichts bezahlt. Eine Bestellung ist `offen`, bis sie geliefert oder vom Nutzer storniert wird

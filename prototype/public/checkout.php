@@ -40,6 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $canBook = Catalog::canBook($user->monthsElapsed);
 $unit = Catalog::monthlyPrice($productId, $user->monthsElapsed);
 $quantity = max(1, min(OrderRepository::MAX_QUANTITY, (int) $form['quantity']));
+$owned = array_count_values(array_column($bookings->listForUser($user->id), 'product'))[$productId] ?? 0;
+$saving = Catalog::savingForUnits($productId, $owned, $quantity, $user->oldMonthlyCost);
 
 pageStart('Kasse', $user);
 ?>
@@ -100,7 +102,10 @@ pageStart('Kasse', $user);
             <li><span>Restlaufzeit</span><span><?= e($remaining) ?> Monate</span></li>
             <li><span>Gesamt pro Gerät</span><span><?= e(euro($unit * $remaining)) ?></span></li>
             <li class="summe"><span>Bei <?= e($quantity) ?>× mehr pro Monat</span><span>+<?= e(euro($unit * $quantity)) ?></span></li>
+            <li><span>Geschätzte Ersparnis pro Monat</span><span><?= e(euro($saving)) ?></span></li>
+            <li class="summe"><span>Unterm Strich pro Monat</span><span><?= e(signedEuro($saving - $unit * $quantity)) ?></span></li>
         </ul>
+        <p class="klein"><?= e(nettoText($saving, $unit * $quantity)) ?> Die Ersparnis ist eine Schätzung aus deinen Stromkosten (<?= e(euro($user->oldMonthlyCost)) ?> pro Monat).</p>
         <p class="klein">Der Betrag wird mit der Abo-Gebühr abgerechnet, nicht sofort. Nach 24 Monaten gehört dir die Technik, ohne weitere Kosten.</p>
         <p class="demo-hinweis klein">Schulprojekt: Online wird nichts bezahlt. Die Bezahlung ist „vor Ort bei der Lieferung“ vorgesehen.</p>
     </aside>

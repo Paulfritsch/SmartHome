@@ -29,15 +29,20 @@ final class Catalog
      * Preis = Gesamtpreis ueber die volle Laufzeit von 24 Monaten. Wer spaeter bucht, verteilt denselben
      * Gesamtpreis auf weniger Monate (siehe monthlyPrice).
      *
-     * @var array<string, array{name: string, description: string, total: float}>
+     * Zusatz:
+     *  - saving: geschaetzte Ersparnis pro Stueck in Prozent der bisherigen monatlichen Energiekosten
+     *  - maxUseful: ab dieser Stueckzahl bringt ein weiteres Stueck nichts mehr (Raeume und Heizkoerper sind begrenzt)
+     * Die Prozentwerte sind Schaetzungen fuer das Schulprojekt, keine Messwerte.
+     *
+     * @var array<string, array{name: string, description: string, total: float, saving: float, maxUseful: int}>
      */
     public const PRODUCTS = [
-        'led' => ['name' => 'Smarte LED-Lampe', 'description' => 'Dimmbar, per App und Zeitplan schaltbar', 'total' => 12.00],
-        'steckdose' => ['name' => 'Smarte Steckdose', 'description' => 'Schaltet Geräte und misst den Verbrauch', 'total' => 20.00],
-        'bewegung' => ['name' => 'Bewegungsmelder', 'description' => 'Schaltet Licht und Geräte bei Bewegung', 'total' => 24.00],
-        'temperatur' => ['name' => 'Temperatursensor', 'description' => 'Misst Temperatur und Luftfeuchte', 'total' => 14.00],
-        'fenster' => ['name' => 'Tür-/Fenstersensor', 'description' => 'Meldet offene Fenster, Heizung kann reagieren', 'total' => 16.00],
-        'thermostat' => ['name' => 'Heizkörperthermostat', 'description' => 'Regelt die Heizung nach Zeitplan', 'total' => 48.00],
+        'led' => ['name' => 'Smarte LED-Lampe', 'description' => 'Dimmbar, per App und Zeitplan schaltbar', 'total' => 12.00, 'saving' => 0.4, 'maxUseful' => 4],
+        'steckdose' => ['name' => 'Smarte Steckdose', 'description' => 'Schaltet Geräte und misst den Verbrauch', 'total' => 20.00, 'saving' => 0.5, 'maxUseful' => 2],
+        'bewegung' => ['name' => 'Bewegungsmelder', 'description' => 'Schaltet Licht und Geräte bei Bewegung', 'total' => 24.00, 'saving' => 1.0, 'maxUseful' => 3],
+        'temperatur' => ['name' => 'Temperatursensor', 'description' => 'Misst Temperatur und Luftfeuchte', 'total' => 14.00, 'saving' => 0.8, 'maxUseful' => 3],
+        'fenster' => ['name' => 'Tür-/Fenstersensor', 'description' => 'Meldet offene Fenster, Heizung kann reagieren', 'total' => 16.00, 'saving' => 1.0, 'maxUseful' => 4],
+        'thermostat' => ['name' => 'Heizkörperthermostat', 'description' => 'Regelt die Heizung nach Zeitplan', 'total' => 48.00, 'saving' => 3.0, 'maxUseful' => 4],
     ];
 
     public static function exists(string $productId): bool
@@ -70,5 +75,40 @@ final class Catalog
         }
 
         return round(self::PRODUCTS[$productId]['total'] / $remaining, 2);
+    }
+
+    /**
+     * Ersparnis in Euro pro Monat fuer $add neue Stuecke, wenn der Nutzer schon $owned Stueck gebucht hat.
+     * Nur die ersten maxUseful Stuecke zaehlen.
+     */
+    public static function savingForUnits(string $productId, int $owned, int $add, float $oldMonthlyCost): float
+    {
+        if (!self::exists($productId) || $oldMonthlyCost <= 0.0) {
+            return 0.0;
+        }
+        $product = self::PRODUCTS[$productId];
+        $counted = max(0, min($add, $product['maxUseful'] - $owned));
+
+        return round($oldMonthlyCost * $product['saving'] / 100 * $counted, 2);
+    }
+
+    /**
+     * Ergaenzt jede Buchung um 'monthlySaving'. Die Stuecke werden in Buchungsreihenfolge gezaehlt,
+     * Stuecke ueber maxUseful bringen 0 Euro.
+     *
+     * @param array<int, array{id: int, product: string, startMonth: int, monthlyPrice: float}> $bookings
+     * @return array<int, array{id: int, product: string, startMonth: int, monthlyPrice: float, monthlySaving: float}>
+     */
+    public static function withSavings(array $bookings, float $oldMonthlyCost): array
+    {
+        usort($bookings, static fn (array $a, array $b): int => $a['id'] <=> $b['id']);
+        $owned = [];
+        foreach ($bookings as &$booking) {
+            $count = $owned[$booking['product']] ?? 0;
+            $booking['monthlySaving'] = self::savingForUnits($booking['product'], $count, 1, $oldMonthlyCost);
+            $owned[$booking['product']] = $count + 1;
+        }
+
+        return $bookings;
     }
 }

@@ -130,7 +130,8 @@ function categoryOptions(DeviceCategory $selected): string
 
 $now = new DateTimeImmutable('now');
 
-$bookingList = $bookings->listForUser($user->id);
+$bookingList = Catalog::withSavings($bookings->listForUser($user->id), $user->oldMonthlyCost);
+$ownedUnits = array_count_values(array_column($bookingList, 'product'));
 $orderList = $orders->listForUser($user->id);
 $subscription = new Subscription($dashboard->getSavings(), $bookingList, $user->monthsElapsed);
 $month = $subscription->monthsElapsed();
@@ -154,6 +155,9 @@ pageStart('Meine Wohnung', $user);
             <p class="klein">Pro Monat</p>
             <dl class="rechnung">
                 <div><dt>Ersparnis bei den Stromkosten</dt><dd><?= e(signedEuro($subscription->monthlySavings())) ?></dd></div>
+                <?php if ($subscription->currentExtraSavings() > 0): ?>
+                    <div><dt>Ersparnis durch Zusatztechnik</dt><dd><?= e(signedEuro($subscription->currentExtraSavings())) ?></dd></div>
+                <?php endif; ?>
                 <div><dt>Abo-Grundgebühr</dt><dd><?= e(signedEuro($subscription->isFinished() ? 0.0 : -Catalog::BASE_MONTHLY_FEE)) ?></dd></div>
                 <div><dt>Zusatztechnik</dt><dd><?= e(signedEuro(-$subscription->currentExtras())) ?></dd></div>
                 <div class="ergebnis <?= $subscription->effectiveMonthly() < 0 ? 'minus' : 'plus' ?>">
@@ -360,11 +364,13 @@ pageStart('Meine Wohnung', $user);
     <?php else: ?>
         <ul class="produkte">
             <?php foreach (Catalog::PRODUCTS as $productId => $product):
-                $price = Catalog::monthlyPrice($productId, $month); ?>
+                $price = Catalog::monthlyPrice($productId, $month);
+                $saving = Catalog::savingForUnits($productId, $ownedUnits[$productId] ?? 0, 1, $user->oldMonthlyCost); ?>
                 <li>
                     <div>
                         <strong><?= e($product['name']) ?></strong>
                         <span class="klein"><?= e($product['description']) ?></span>
+                        <span class="klein netto"><?= e(nettoText($saving, $price)) ?></span>
                     </div>
                     <div class="kaufen">
                         <span class="preis"><?= e(euro($price)) ?> <span class="klein">pro Monat</span></span>
