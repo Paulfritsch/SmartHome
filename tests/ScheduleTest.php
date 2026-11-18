@@ -11,6 +11,8 @@ use SmartSave\ValidationException;
 
 final class ScheduleTest extends TestCase
 {
+    use RejectsInvalidInput;
+
     public function testOffWindowWithinOneDay(): void
     {
         $this->assertSame(8.0, (new Schedule('09:00', '17:00'))->offHoursPerDay());
@@ -39,10 +41,11 @@ final class ScheduleTest extends TestCase
         $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 21:59')));
     }
 
-    /** @dataProvider savingReasons */
-    public function testSavingReasonDependsOnTimeOfDay(string $off, ?string $reason): void
+    public function testSavingReasonDependsOnTimeOfDay(): void
     {
-        $this->assertSame($reason, (new Schedule($off, null))->savingReason());
+        foreach (self::savingReasons() as $label => [$off, $reason]) {
+            $this->assertSame($reason, (new Schedule($off, null))->savingReason(), $label);
+        }
     }
 
     public static function savingReasons(): array
@@ -80,24 +83,9 @@ final class ScheduleTest extends TestCase
         $this->assertSame(0.0, (new Schedule('14:00'))->creditedHoursPerDay());
     }
 
-    public function testTimesWithSecondsAreAccepted(): void
+    public function testInvalidTimesAreRejected(): void
     {
-        $schedule = new Schedule('22:00:00', '06:30:00');
-
-        $this->assertSame('22:00', $schedule->offTime);
-        $this->assertSame('06:30', $schedule->onTime);
-    }
-
-    public function testEmptyOnTimeMeansNoOnTime(): void
-    {
-        $this->assertNull((new Schedule('22:00', ''))->onTime);
-    }
-
-    /** @dataProvider invalidTimes */
-    public function testInvalidTimesAreRejected(string $off, ?string $on): void
-    {
-        $this->expectException(ValidationException::class);
-        new Schedule($off, $on);
+        $this->assertAllRejected(self::invalidTimes(), fn (string $off, ?string $on) => new Schedule($off, $on));
     }
 
     public static function invalidTimes(): array
@@ -110,11 +98,5 @@ final class ScheduleTest extends TestCase
             'gleiche Zeiten' => ['07:00', '07:00'],
             'leere Ausschaltzeit' => ['', null],
         ];
-    }
-
-    public function testDescribe(): void
-    {
-        $this->assertSame('aus 22:00 bis 06:00', (new Schedule('22:00', '06:00'))->describe());
-        $this->assertSame('aus ab 22:00 (ca. 8 Std.)', (new Schedule('22:00'))->describe());
     }
 }

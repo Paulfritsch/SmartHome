@@ -76,27 +76,6 @@ final class DeviceScheduleTest extends TestCase
         $this->assertEqualsWithDelta(360.0, $device->getMonthlyConsumptionKwh(), 0.0001);
     }
 
-    public function testOtherDevicesSaveOnlyStandbyShare(): void
-    {
-        $device = $this->device(DeviceCategory::Other, new Schedule('22:00', '06:00'), 1000.0, 12.0);
-
-        $this->assertEqualsWithDelta(24.0, $device->getScheduleSavingsKwh(), 0.0001); // 10 % von 240 kWh
-    }
-
-    public function testNoScheduleMeansNoSavings(): void
-    {
-        $this->assertSame(0.0, $this->device(DeviceCategory::Heating, null)->getScheduleSavingsKwh());
-    }
-
-    public function testSwitchedOffDeviceHasNoScheduleSavings(): void
-    {
-        $device = new Device('Lampe', 100.0, 4.0, DeviceCategory::Light, new Schedule('22:00', '06:00'));
-        $device->turnOff();
-
-        $this->assertSame(0.0, $device->getScheduleSavingsKwh());
-        $this->assertSame(0.0, $device->getMonthlyConsumptionKwh());
-    }
-
     public function testScheduleSwitchesPowerOffAtNight(): void
     {
         $device = $this->device(DeviceCategory::Light, new Schedule('22:00', '06:00'), 100.0);

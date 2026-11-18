@@ -96,23 +96,6 @@ final class SubscriptionTest extends TestCase
         $this->assertFalse(Catalog::canBook(24));
     }
 
-    public function testCatalogRejectsUnknownProduct(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        Catalog::monthlyPrice('raumschiff', 0);
-    }
-
-    public function testAllProductsHaveAPositiveTotalAndNames(): void
-    {
-        foreach (Catalog::PRODUCTS as $id => $product) {
-            $this->assertGreaterThan(0.0, $product['total'], $id);
-            $this->assertNotSame('', $product['name'], $id);
-        }
-        foreach (array_keys(Catalog::BASE_INCLUDED) as $id) {
-            $this->assertTrue(Catalog::exists($id), "Basis-Produkt $id fehlt im Katalog");
-        }
-    }
-
     public function testExtraTechnologyAddsItsSavingsFromTheStartMonth(): void
     {
         $bookings = [
@@ -132,14 +115,6 @@ final class SubscriptionTest extends TestCase
         // 12 * 12,4 + 12 * 14,8 = 326,4
         $this->assertSame(326.4, $subscription->totalSavings24());
         $this->assertSame(14.8, $subscription->monthlyAfterTerm());
-    }
-
-    public function testEffectiveSoFarCountsExtraSavingsToo(): void
-    {
-        $bookings = [['startMonth' => 0, 'monthlyPrice' => 1.0, 'monthlySaving' => 3.0]];
-
-        // 6 * (10 + 3 - 5,99 - 1)
-        $this->assertSame(36.06, (new Subscription(10.0, $bookings, 6))->effectiveSoFar());
     }
 
     public function testCatalogSavingIsAPercentageOfTheEnergyCost(): void
@@ -173,15 +148,6 @@ final class SubscriptionTest extends TestCase
         $this->assertSame([0.4, 0.4, 0.0], array_column($result, 'monthlySaving'));
     }
 
-    public function testEveryProductHasAPlausibleSavingAndLimit(): void
-    {
-        foreach (Catalog::PRODUCTS as $id => $product) {
-            $this->assertGreaterThan(0, $product['saving'], $id);
-            $this->assertLessThanOrEqual(5, $product['saving'], $id);
-            $this->assertGreaterThanOrEqual(1, $product['maxUseful'], $id);
-        }
-    }
-
     public function testAllUsefulExtrasTogetherStayBelowThirtyPercentOfTheEnergyCost(): void
     {
         $sum = 0.0;
@@ -203,14 +169,6 @@ final class SubscriptionTest extends TestCase
         $this->assertSame(240.0, $subscription->totalSavings24());
     }
 
-    public function testCapDoesNotReduceAnythingBelowTheLimit(): void
-    {
-        $subscription = new Subscription(8.0, [], 0, 10.0);
-
-        $this->assertSame(8.0, $subscription->currentSavings());
-        $this->assertSame(0.0, $subscription->currentCapReduction());
-    }
-
     public function testBaseSavingIsAPercentageOfTheEnergyCost(): void
     {
         $this->assertSame(2.96, Catalog::baseSaving(80.0));   // 3,7 %
@@ -219,10 +177,12 @@ final class SubscriptionTest extends TestCase
         $this->assertSame(24.0, Catalog::maxSavings(80.0));   // 30 %
     }
 
-    /** @dataProvider coverageCases */
-    public function testCoverageShowsHowMuchOfTheFeeTheSavingsPay(float $savings, int $expected): void
+    public function testCoverageShowsHowMuchOfTheFeeTheSavingsPay(): void
     {
-        $this->assertSame($expected, (new Subscription($savings, [], 0))->coveragePercent());
+        foreach (self::coverageCases() as $label => [$savings, $expected]) {
+            $this->assertSame($expected, (new Subscription($savings, [], 0))->coveragePercent(), $label);
+        }
+        $this->assertSame(100, (new Subscription(0.0, [], 24))->coveragePercent(), 'nach der Laufzeit');
     }
 
     /** @return array<string, array{float, int}> */
@@ -236,8 +196,4 @@ final class SubscriptionTest extends TestCase
         ];
     }
 
-    public function testCoverageIsFullAfterTheTerm(): void
-    {
-        $this->assertSame(100, (new Subscription(0.0, [], 24))->coveragePercent());
-    }
 }

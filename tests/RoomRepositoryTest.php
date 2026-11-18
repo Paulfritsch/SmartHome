@@ -13,6 +13,8 @@ use SmartSave\ValidationException;
 
 final class RoomRepositoryTest extends TestCase
 {
+    use RejectsInvalidInput;
+
     private RoomRepository $rooms;
     private DeviceRepository $devices;
     private int $anna;
@@ -67,11 +69,9 @@ final class RoomRepositoryTest extends TestCase
         $this->assertSame([], $this->devices->listForUser($this->anna));
     }
 
-    /** @dataProvider invalidRooms */
-    public function testInvalidRoomIsRejected(string $name, int $width): void
+    public function testInvalidRoomsAreRejected(): void
     {
-        $this->expectException(ValidationException::class);
-        $this->rooms->add($this->anna, $name, $width);
+        $this->assertAllRejected(self::invalidRooms(), fn (string $name, int $width) => $this->rooms->add($this->anna, $name, $width));
     }
 
     public static function invalidRooms(): array

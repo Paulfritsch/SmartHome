@@ -13,6 +13,8 @@ use SmartSave\ValidationException;
 
 final class BookingRepositoryTest extends TestCase
 {
+    use RejectsInvalidInput;
+
     private BookingRepository $bookings;
     private UserRepository $users;
     private int $anna;
@@ -81,20 +83,15 @@ final class BookingRepositoryTest extends TestCase
         $this->assertSame([], $this->bookings->listForUser($this->anna));
     }
 
-    public function testMonthsElapsedCanBeSetWithinTheTerm(): void
-    {
-        $this->users->setMonthsElapsed($this->anna, 12);
-        $this->assertSame(12, $this->users->findById($this->anna)->monthsElapsed);
 
-        $this->users->setMonthsElapsed($this->anna, 24);
-        $this->assertSame(24, $this->users->findById($this->anna)->monthsElapsed);
-    }
-
-    /** @dataProvider invalidMonths */
-    public function testInvalidMonthsAreRejected(int $months): void
+    public function testMonthsElapsedMustStayWithinTheTerm(): void
     {
-        $this->expectException(ValidationException::class);
-        $this->users->setMonthsElapsed($this->anna, $months);
+        foreach ([12, 24] as $months) {
+            $this->users->setMonthsElapsed($this->anna, $months);
+            $this->assertSame($months, $this->users->findById($this->anna)->monthsElapsed);
+        }
+
+        $this->assertAllRejected(self::invalidMonths(), fn (int $months) => $this->users->setMonthsElapsed($this->anna, $months));
     }
 
     public static function invalidMonths(): array

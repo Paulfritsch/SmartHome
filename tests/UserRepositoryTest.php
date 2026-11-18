@@ -12,6 +12,8 @@ use SmartSave\ValidationException;
 
 final class UserRepositoryTest extends TestCase
 {
+    use RejectsInvalidInput;
+
     private PDO $pdo;
     private UserRepository $users;
 
@@ -65,11 +67,12 @@ final class UserRepositoryTest extends TestCase
         $this->users->register('Anna 2', 'ANNA@example.de', 'anderes123', 0.30);
     }
 
-    /** @dataProvider invalidRegistrations */
-    public function testInvalidRegistrationIsRejected(string $name, string $email, string $password, mixed $price): void
+    public function testInvalidRegistrationsAreRejected(): void
     {
-        $this->expectException(ValidationException::class);
-        $this->users->register($name, $email, $password, $price);
+        $this->assertAllRejected(
+            self::invalidRegistrations(),
+            fn (string $name, string $email, string $password, mixed $price) => $this->users->register($name, $email, $password, $price)
+        );
     }
 
     public static function invalidRegistrations(): array

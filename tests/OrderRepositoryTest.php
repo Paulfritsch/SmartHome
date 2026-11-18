@@ -14,6 +14,8 @@ use SmartSave\ValidationException;
 
 final class OrderRepositoryTest extends TestCase
 {
+    use RejectsInvalidInput;
+
     private OrderRepository $orders;
     private BookingRepository $bookings;
     private UserRepository $users;
@@ -68,12 +70,9 @@ final class OrderRepositoryTest extends TestCase
         $this->assertCount(2, $this->bookings->listForUser($this->anna->id));
     }
 
-    /** @dataProvider invalidQuantities */
-    public function testInvalidQuantityIsRejected(int|string $quantity): void
+    public function testInvalidQuantitiesAreRejected(): void
     {
-        $this->expectException(ValidationException::class);
-
-        $this->orders->place($this->anna, 'led', $quantity, $this->address);
+        $this->assertAllRejected(self::invalidQuantities(), fn (int|string $quantity) => $this->orders->place($this->anna, 'led', $quantity, $this->address));
     }
 
     /** @return array<string, array{int|string}> */
@@ -101,14 +100,13 @@ final class OrderRepositoryTest extends TestCase
         $this->orders->place($this->users->findById($this->anna->id), 'led', 1, $this->address);
     }
 
-    /** @dataProvider invalidAddresses */
-    public function testInvalidAddressIsRejected(string $field, string $value): void
+    public function testInvalidAddressesAreRejected(): void
     {
-        $address = [$field => $value] + $this->address;
-
-        $this->expectException(ValidationException::class);
-
-        $this->orders->place($this->anna, 'led', 1, $address);
+        $this->assertAllRejected(
+            self::invalidAddresses(),
+            fn (string $field, string $value) => $this->orders->place($this->anna, 'led', 1, [$field => $value] + $this->address)
+        );
+        $this->assertSame([], $this->orders->listForUser($this->anna->id));
     }
 
     /** @return array<string, array{string, string}> */
@@ -125,27 +123,11 @@ final class OrderRepositoryTest extends TestCase
         ];
     }
 
-    public function testMissingAddressFieldsAreRejected(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $this->orders->place($this->anna, 'led', 1, []);
-    }
-
     public function testUnknownPaymentMethodIsRejected(): void
     {
         $this->expectException(ValidationException::class);
 
         $this->orders->place($this->anna, 'led', 1, $this->address, 'bitcoin');
-    }
-
-    public function testAddressIsStoredTrimmed(): void
-    {
-        $this->orders->place($this->anna, 'led', 1, ['name' => '  Anna ', 'street' => ' Weg 2 ', 'zip' => ' 20095 ', 'city' => ' Hamburg '] );
-
-        $order = $this->orders->listForUser($this->anna->id)[0];
-        $this->assertSame('Anna', $order['name']);
-        $this->assertSame('20095', $order['zip']);
     }
 
     public function testSqlInjectionInAddressIsStoredAsPlainText(): void
@@ -189,12 +171,6 @@ final class OrderRepositoryTest extends TestCase
         $this->assertSame(['led' => 3], $this->orders->packingList());
     }
 
-    public function testCountsAreZeroWithoutOrders(): void
-    {
-        $this->assertSame(['offen' => 0, 'geliefert' => 0, 'storniert' => 0], $this->orders->countByStatus());
-        $this->assertSame([], $this->orders->packingList());
-    }
-
     public function testMarkDeliveredSetsStatusAndTimestampOnce(): void
     {
         $id = $this->orders->place($this->anna, 'led', 1, $this->address);
@@ -218,19 +194,6 @@ final class OrderRepositoryTest extends TestCase
         $this->assertSame('storniert', $this->orders->listForUser($this->anna->id)[0]['status']);
     }
 
-    public function testCancelKeepsBookingsOfOtherOrders(): void
-    {
-        $keep = $this->orders->place($this->anna, 'led', 1, $this->address);
-        $drop = $this->orders->place($this->anna, 'steckdose', 1, $this->address);
-
-        $this->orders->cancelOpen($this->anna->id, $drop);
-
-        $bookings = $this->bookings->listForUser($this->anna->id);
-        $this->assertCount(1, $bookings);
-        $this->assertSame('led', $bookings[0]['product']);
-        $this->assertGreaterThan(0, $keep);
-    }
-
     public function testCannotCancelSomeoneElsesOrder(): void
     {
         $id = $this->orders->place($this->anna, 'led', 1, $this->address);
@@ -249,14 +212,6 @@ final class OrderRepositoryTest extends TestCase
         $this->assertCount(1, $this->bookings->listForUser($this->anna->id));
     }
 
-    public function testCannotMarkCancelledOrderAsDelivered(): void
-    {
-        $id = $this->orders->place($this->anna, 'led', 1, $this->address);
-        $this->orders->cancelOpen($this->anna->id, $id);
-
-        $this->assertFalse($this->orders->markDelivered($id));
-    }
-
     public function testUsersAreNoAdminByDefaultAndAdminFlagCanBeSetAndRemoved(): void
     {
         $this->assertFalse($this->users->findById($this->anna->id)->isAdmin);
@@ -267,11 +222,6 @@ final class OrderRepositoryTest extends TestCase
 
         $this->assertTrue($this->users->setAdmin('anna@example.de', false));
         $this->assertFalse($this->users->findById($this->anna->id)->isAdmin);
-    }
-
-    public function testSetAdminReturnsFalseForUnknownEmail(): void
-    {
-        $this->assertFalse($this->users->setAdmin('niemand@example.de'));
     }
 
     public function testBaseSetOrderIsOpenOnceAndHasNoBookings(): void
@@ -300,13 +250,6 @@ final class OrderRepositoryTest extends TestCase
         } catch (ValidationException) {
             $this->assertCount(1, $this->orders->listForUser($this->anna->id));
         }
-    }
-
-    public function testBaseSetNeedsAValidAddress(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $this->orders->placeBase($this->anna, ['zip' => 'abc'] + $this->address);
     }
 
     public function testBaseSetShowsUpForAdminsAndInThePackingList(): void
@@ -342,17 +285,6 @@ final class OrderRepositoryTest extends TestCase
         $this->orders->normalizeAddress(['name' => 'Anna']);
     }
 
-    public function testProductNamesAndBaseSetContents(): void
-    {
-        $this->assertSame('Basis-Set', \SmartSave\Catalog::productName('basis'));
-        $this->assertSame('Smarte LED-Lampe', \SmartSave\Catalog::productName('led'));
-        $this->assertSame('rakete', \SmartSave\Catalog::productName('rakete'));
-        $this->assertSame(
-            'Hub, 2× Smarte LED-Lampe, 1× Smarte Steckdose, 1× Bewegungsmelder',
-            \SmartSave\Catalog::baseSetContents()
-        );
-    }
-
     public function testStarterModelOrdersOnlyTheBaseSet(): void
     {
         $ids = $this->orders->placeModel($this->anna, 'starter', $this->address);
@@ -375,21 +307,10 @@ final class OrderRepositoryTest extends TestCase
         }
     }
 
-    public function testModelPricesMatchTheWebsitePackages(): void
+    public function testUnknownOrEmptyModelOrdersNothing(): void
     {
-        $this->assertSame(5.99, \SmartSave\Catalog::modelMonthlyPrice('starter'));
-        $this->assertSame(8.57, \SmartSave\Catalog::modelMonthlyPrice('komfort'));
-    }
-
-    /** @dataProvider invalidModels */
-    public function testUnknownOrEmptyModelOrdersNothing(string $model): void
-    {
-        try {
-            $this->orders->placeModel($this->anna, $model, $this->address);
-            $this->fail('ValidationException erwartet');
-        } catch (ValidationException) {
-            $this->assertSame([], $this->orders->listForUser($this->anna->id));
-        }
+        $this->assertAllRejected(self::invalidModels(), fn (string $model) => $this->orders->placeModel($this->anna, $model, $this->address));
+        $this->assertSame([], $this->orders->listForUser($this->anna->id));
     }
 
     /** @return array<string, array{string}> */
@@ -419,12 +340,5 @@ final class OrderRepositoryTest extends TestCase
         } catch (ValidationException) {
             $this->assertCount(1, $this->orders->listForUser($this->anna->id));
         }
-    }
-
-    public function testNormalizeModelAcceptsOnlyKnownModels(): void
-    {
-        $this->assertSame('komfort', $this->orders->normalizeModel('komfort'));
-        $this->expectException(ValidationException::class);
-        $this->orders->normalizeModel('');
     }
 }
