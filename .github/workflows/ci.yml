@@ -36,7 +36,35 @@ jobs:
         run: find prototype/src tests -name "*.php" -print0 | xargs -0 -n1 php -l
 
       - name: Run unit tests
-        run: vendor/bin/phpunit --coverage-text
+        run: |
+          mkdir -p build
+          vendor/bin/phpunit --coverage-text --testdox-text build/php-tests.txt --log-junit build/phpunit-junit.xml
 
       - name: Test website prototype
-        run: node --test tests/js/builder.test.js tests/js/html.test.js
+        run: |
+          mkdir -p build
+          set -o pipefail
+          node --test --test-reporter=spec tests/js/builder.test.js tests/js/html.test.js | tee build/js-tests.txt
+
+      # Alle Tests mit Namen direkt auf der Seite des Durchlaufs (Reiter "Summary")
+      - name: Show test results in the summary
+        if: always()
+        run: |
+          {
+            echo "## PHP-Tests (PHPUnit)"
+            echo '```'
+            cat build/php-tests.txt 2>/dev/null || echo "Keine Ergebnisse"
+            echo '```'
+            echo "## Website-Tests (Node)"
+            echo '```'
+            cat build/js-tests.txt 2>/dev/null || echo "Keine Ergebnisse"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Berichte zum Herunterladen (JUnit-XML und Textliste)
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: build/
