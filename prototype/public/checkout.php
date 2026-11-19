@@ -107,7 +107,6 @@ pageStart('Kasse', $user);
         </ul>
         <p class="klein"><?= e(nettoText($saving, $unit * $quantity)) ?> Die Ersparnis ist eine Schätzung aus deinen Stromkosten (<?= e(euro($user->oldMonthlyCost)) ?> pro Monat).</p>
         <p class="klein">Der Betrag wird mit der Abo-Gebühr abgerechnet, nicht sofort. Nach 24 Monaten gehört dir die Technik, ohne weitere Kosten.</p>
-        <p class="demo-hinweis klein">Schulprojekt: Online wird nichts bezahlt. Die Bezahlung ist „vor Ort bei der Lieferung“ vorgesehen.</p>
     </aside>
 </div>
 <?php endif; ?>

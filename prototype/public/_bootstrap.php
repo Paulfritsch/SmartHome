@@ -213,7 +213,7 @@ function pageEnd(): void
 {
     ?>
 </main>
-<footer class="fuss">SmartSave ist ein Schulprojekt (Berufsschule, Lernfeld 10). Die Geräte sind simuliert.</footer>
+<footer class="fuss">SmartSave: Smart Home im Abo.</footer>
 </body>
 </html>
 <?php

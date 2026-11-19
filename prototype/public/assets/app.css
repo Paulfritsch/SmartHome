@@ -160,7 +160,6 @@ a.knopf:hover { background: #142e9e; border-color: #142e9e; }
 .kasse li { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem 0; border-top: 1px solid var(--linie); }
 .kasse li:first-child { border-top: 0; }
 .kasse .summe { font-weight: 800; font-size: 1.1rem; }
-.demo-hinweis { border-left: 5px solid var(--licht); background: var(--licht-weich); padding: .6rem 1rem; border-radius: 4px; margin-top: 1rem; }
 
 .zaehler { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1px; background: var(--linie); border: 1px solid var(--linie); border-radius: 6px; overflow: hidden; margin-bottom: 1.5rem; }
 .zaehler > div { background: var(--flaeche); padding: .9rem 1rem; }

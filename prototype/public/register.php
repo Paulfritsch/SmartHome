@@ -83,8 +83,7 @@ pageStart('Konto anlegen');
 
         <button type="submit">Konto anlegen</button>
     </form>
-    <p class="klein">Mit dem Konto startet dein Demo-Abo: <?= e(\SmartSave\Catalog::TERM_MONTHS) ?> Monate Laufzeit zum Preis deines Pakets, danach gehört dir die Technik. Es wird nichts abgebucht.</p>
-    <p class="klein">Schulprojekt: Bitte keine echten Zugangsdaten verwenden, die du anderswo benutzt.</p>
+    <p class="klein">Mit dem Konto startet dein Abo: <?= e(\SmartSave\Catalog::TERM_MONTHS) ?> Monate Laufzeit zum Preis deines Pakets, danach gehört dir die Technik.</p>
     <p class="klein">Schon ein Konto? <a href="login.php">Anmelden</a></p>
 </section>
 <?php

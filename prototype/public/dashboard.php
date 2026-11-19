@@ -207,7 +207,7 @@ pageStart('Meine Wohnung', $user);
     <form method="post" class="zeitraffer">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="set_month">
-        <span class="klein">Demo-Zeitraffer: so tun, als wäre schon Zeit vergangen.</span>
+        <span class="klein">Zeitraffer: so tun, als wäre schon Zeit vergangen.</span>
         <button type="submit" name="months" value="<?= e(min(Catalog::TERM_MONTHS, $month + 1)) ?>" class="leise">+1 Monat</button>
         <button type="submit" name="months" value="<?= e(min(Catalog::TERM_MONTHS, $month + 6)) ?>" class="leise">+6 Monate</button>
         <button type="submit" name="months" value="<?= e(Catalog::TERM_MONTHS) ?>" class="leise">Ende der Laufzeit</button>
@@ -335,7 +335,6 @@ pageStart('Meine Wohnung', $user);
                             </select>
                         </label>
                         <label>Seriennummer oder QR-Code-Inhalt <input name="pairing_code" placeholder="steht auf dem Gerät oder der Verpackung" maxlength="<?= e(DeviceRepository::MAX_PAIRING_CODE_LENGTH) ?>" required></label>
-                        <p class="klein">Demo: Jeder Code wird angenommen, das Gerät wird nur simuliert.</p>
                         <button type="submit">Hinzufügen</button>
                     </form>
                 </details>

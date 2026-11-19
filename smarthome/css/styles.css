@@ -290,7 +290,6 @@ input:focus-visible { outline: 3px solid var(--blau); outline-offset: 1px; borde
 }
 .warenkorb-liste li:first-child { border-top: 2px solid var(--tinte); }
 .warenkorb-liste .betrag { font-weight: 650; }
-.demo-hinweis { margin: 1.1rem 0 1.5rem; padding: 0.85rem 1rem; border-radius: 0.35rem; background: var(--marker); font-weight: 600; max-width: 56ch; }
 .felder { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .felder .voll { grid-column: 1 / -1; }
 .felder .feld { margin-bottom: 0; }
