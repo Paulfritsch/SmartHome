@@ -2,11 +2,20 @@
 
 declare(strict_types=1);
 
+// Registrierung: Konto, Paket (Starter oder Komfort) und Lieferadresse in einem Schritt.
+// Daraus entstehen die ersten Bestellungen für das Team.
+
 require __DIR__ . '/_bootstrap.php';
 
 use SmartSave\Catalog;
 use SmartSave\ExampleApartment;
 use SmartSave\ValidationException;
+
+// Diese Objekte legt _bootstrap.php an (die Angaben helfen der statischen Analyse mit PHPStan):
+/** @var \SmartSave\UserRepository $users */
+/** @var \SmartSave\RoomRepository $rooms */
+/** @var \SmartSave\DeviceRepository $devices */
+/** @var \SmartSave\OrderRepository $orders */
 
 $current = currentUser($users);
 if ($current !== null) {
@@ -14,6 +23,17 @@ if ($current !== null) {
 }
 
 $form = ['name' => '', 'email' => '', 'price' => '', 'old_cost' => '', 'model' => '', 'street' => '', 'zip' => '', 'city' => ''];
+
+// Vorauswahl aus dem Warenkorb der Website (warenkorb.html): ?paket=starter|komfort&kosten=150
+$wantedModel = $_GET['paket'] ?? null;
+if (is_string($wantedModel) && Catalog::modelExists($wantedModel)) {
+    $form['model'] = $wantedModel;
+}
+$wantedCost = $_GET['kosten'] ?? null;
+if (is_string($wantedCost) && preg_match('/^\d{1,4}([.,]\d{1,2})?$/', $wantedCost) === 1) {
+    $form['old_cost'] = $wantedCost;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCsrf();
     foreach (array_keys($form) as $field) {

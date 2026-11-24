@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bezahlung – SmartSave</title>
+<title>Übersicht – SmartSave</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231C3FD8'/%3E%3Cpath d='M18 5 9 18h6l-1 9 9-13h-6z' fill='%23FFD426'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -12,17 +12,17 @@
 <header class="kopf-app">
   <div class="wrap kopf">
     <a class="wortmarke" href="index.html">SmartSave</a>
-    <ol class="schritte" aria-label="Fortschritt"><li id="schritt-paket">Paket</li><li id="schritt-bezahlen" aria-current="step">Bezahlen</li><li id="schritt-fertig">Fertig</li></ol>
+    <ol class="schritte" aria-label="Fortschritt"><li id="schritt-paket">Paket</li><li id="schritt-bezahlen" aria-current="step">Prüfen</li><li id="schritt-fertig">Bestellen</li></ol>
   </div>
 </header>
 
 <main id="inhalt" class="wrap">
   <div class="seitenkopf">
-    <h1>Prüfen und bezahlen</h1>
+    <h1>Prüfen und bestellen</h1>
     <p>Hier siehst du deine Auswahl und die monatliche Rechnung noch einmal.</p>
   </div>
 
-  <form id="payment-form" class="kasse">
+  <div class="kasse">
     <div>
       <section class="block" aria-labelledby="h-paket">
         <h2 id="h-paket">Dein Paket</h2>
@@ -30,15 +30,16 @@
         <ul class="warenkorb-liste" id="warenkorb-liste"></ul>
       </section>
 
-      <section class="block" aria-labelledby="h-zahlung">
-        <h2 id="h-zahlung">Zahlung</h2>
-        <div class="felder">
-          <div class="feld voll"><label for="email">E-Mail-Adresse</label><input id="email" type="email" placeholder="name@beispiel.de" autocomplete="off" required></div>
-          <div class="feld voll"><label for="kartenname">Name auf der Karte</label><input id="kartenname" type="text" placeholder="Max Mustermann" autocomplete="off" required></div>
-          <div class="feld voll"><label for="kartennummer">Kartennummer</label><input id="kartennummer" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" autocomplete="off" required></div>
-          <div class="feld"><label for="ablaufdatum">Gültig bis</label><input id="ablaufdatum" type="text" inputmode="numeric" placeholder="MM / JJ" autocomplete="off" required></div>
-          <div class="feld"><label for="pruefnummer">Prüfnummer</label><input id="pruefnummer" type="text" inputmode="numeric" placeholder="CVC" autocomplete="off" required></div>
-        </div>
+      <!-- Ablauf wie im Geschäftsprozess: Konto mit Paket und Lieferadresse, Lieferung, Bezahlung vor Ort -->
+      <section class="block" aria-labelledby="h-ablauf">
+        <h2 id="h-ablauf">So geht es weiter</h2>
+        <ol class="ablauf-liste">
+          <li><strong>Konto anlegen</strong> und dein Paket wählen (Starter oder Komfort).</li>
+          <li><strong>Lieferadresse angeben.</strong> Deine Bestellung landet direkt bei unserem Team.</li>
+          <li><strong>Wir liefern die Technik.</strong> Du bezahlst vor Ort bei der Lieferung, online wird nichts bezahlt.</li>
+          <li><strong>Im Dashboard</strong> legst du Räume und Geräte an, siehst deine Ersparnis und buchst weitere Technik dazu.</li>
+        </ol>
+        <p class="klein" id="paket-hinweis"></p>
       </section>
     </div>
 
@@ -51,11 +52,11 @@
         <div class="ergebnis-zeile"><dt>Unterm Strich pro Monat</dt><dd id="differenz">0,00 €</dd></div>
       </dl>
       <p class="klein">24 Monate Laufzeit. Danach gehört dir die Technik und die Abo-Gebühr endet.</p>
-      <button class="btn btn-blau btn-voll" id="bestellen-btn" type="submit">Testbestellung abschließen</button>
+      <a class="btn btn-blau btn-voll" id="bestellen-btn" href="register.php">Konto anlegen und bestellen</a>
       <a class="btn btn-leise btn-voll" href="konfigurator.html?bearbeiten=1">Paket ändern</a>
-      <p class="bestell-status" id="bestell-status" role="status"></p>
+      <p class="klein">Schon ein Konto? <a href="login.php">Anmelden</a> und im Dashboard dazubuchen.</p>
     </aside>
-  </form>
+  </div>
 </main>
 
 <script src="js/komponenten.js"></script>

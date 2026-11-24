@@ -284,6 +284,8 @@ input:focus-visible { outline: 3px solid var(--blau); outline-offset: 1px; borde
 .block { margin-bottom: 2.75rem; }
 .block h2 { margin-bottom: 0.5rem; font-size: 2rem; font-weight: 800; font-stretch: 70%; }
 .block > p { max-width: 56ch; }
+.ablauf-liste { max-width: 56ch; margin: 1rem 0; padding-left: 1.4rem; }
+.ablauf-liste li { margin-bottom: 0.6rem; }
 .warenkorb-liste { list-style: none; margin-top: 1.1rem; }
 .warenkorb-liste li {
   display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.8rem; border-bottom: 1px solid var(--linie);

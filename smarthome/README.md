@@ -1,6 +1,6 @@
 # SmartSave Website-Prototyp
 
-Dieser Ordner enthält den Klick-Prototyp der Website: Startseite, Konfigurator und Bezahlung.
+Dieser Ordner enthält die Website: Startseite, Konfigurator und Übersicht (Warenkorb).
 
 ## Starten
 
@@ -12,7 +12,8 @@ python3 -m http.server 8080
 
 Mit PHP geht es genauso: `php -S localhost:8080`
 
-Danach `http://localhost:8080` öffnen. Der Link „Login“ oben rechts funktioniert nur, wenn die Website zusammen mit dem PHP-Prototyp läuft: `php -S localhost:8000 prototype/router.php` im Hauptordner des Repos. Ein Webserver wird verwendet, damit die Bezahlseite
+Danach `http://localhost:8080` öffnen. Der Link „Login“ oben rechts funktioniert nur, wenn die Website zusammen mit dem PHP-Prototyp läuft: `php -S localhost:8000 prototype/router.php` im Hauptordner des Repos. Das gilt auch für „Konto anlegen und bestellen“ in der Übersicht.
+Ein Webserver wird verwendet, damit die Übersicht
 die Auswahl zuverlässig über `sessionStorage` übernehmen kann.
 
 ## Demo-Ablauf
@@ -21,10 +22,11 @@ die Auswahl zuverlässig über `sessionStorage` übernehmen kann.
 2. Komponenten und monatliche Energiekosten im Konfigurator anpassen.
 3. Abo-Gebühr und geschätzte Ersparnis vergleichen. Kostet das Abo mehr, als es spart,
    zeigt die Seite das offen an.
-4. Auswahl auf der Bezahlseite prüfen und die Testbestellung abschließen.
+4. Auswahl in der Übersicht prüfen und „Konto anlegen und bestellen“ wählen. Die Registrierung der
+   PHP-Anwendung übernimmt Paket (Starter oder Komfort) und Energiekosten. Bezahlt wird bei der Lieferung,
+   die Website fragt keine Zahlungsdaten ab.
 
-Die Bestellung sendet und speichert keine Daten. Die Ersparnis ist eine vereinfachte Annahme
-für das Schulprojekt, keine Energieberatung.
+Die Ersparnis ist eine vereinfachte Annahme für das Schulprojekt, keine Energieberatung.
 
 ## Gestaltung
 
@@ -41,5 +43,6 @@ für das Schulprojekt, keine Energieberatung.
 Vom Repository-Hauptordner aus:
 
 ```bash
-node --test tests/js/builder.test.js tests/js/html.test.js
+npm test        # oder: node --test tests/js/builder.test.js tests/js/html.test.js
+npm run lint    # statische Analyse mit ESLint (vorher einmal npm install)
 ```

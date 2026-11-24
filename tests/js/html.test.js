@@ -83,3 +83,11 @@ test("Startseite und Konfigurator verlinken oben auf den Login", () => {
         assert.match(lies(seite), /<a class="kopf-login" href="login\.php">Login<\/a>/, seite);
     }
 });
+
+test("Der Warenkorb fragt keine Zahlungsdaten ab und führt zur Registrierung (Bezahlung bei Lieferung)", () => {
+    const html = lies("warenkorb.html");
+    assert.doesNotMatch(html, /karten(nummer|name)|pruefnummer|ablaufdatum/i, "Kartenfelder gehören nicht mehr zum Prozess");
+    assert.doesNotMatch(html, /Testbestellung/, "Die alte Testbestellung ist entfernt");
+    assert.match(html, /id="bestellen-btn" href="register\.php"/);
+    assert.match(html, /bei der Lieferung/);
+});
