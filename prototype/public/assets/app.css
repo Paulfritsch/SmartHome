@@ -64,8 +64,9 @@ label.check input { width: auto; margin: 0; }
 .hinweis.ok { border-color: var(--gruen); background: #e6f4ee; }
 
 /* Kennzahlen */
-.werte { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1px; background: var(--linie); border: 1px solid var(--linie); border-radius: 6px; overflow: hidden; margin-bottom: 1.75rem; }
-.werte > div { background: var(--flaeche); padding: .9rem 1rem; }
+/* Flex statt Grid: Kacheln in einer unvollständigen letzten Zeile werden breiter, es bleibt keine leere Fläche */
+.werte { display: flex; flex-wrap: wrap; gap: 1px; background: var(--linie); border: 1px solid var(--linie); border-radius: 6px; overflow: hidden; margin-bottom: 1.75rem; }
+.werte > div { flex: 1 1 11rem; background: var(--flaeche); padding: .9rem 1rem; }
 .werte .zahl { display: block; font-size: 1.5rem; font-weight: 800; }
 .werte .bez { display: block; font-size: .82rem; color: var(--tinte-weich); }
 .werte .gewinn { background: var(--licht); }
