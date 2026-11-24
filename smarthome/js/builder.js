@@ -54,7 +54,7 @@ class SmartHomePaket {
 
 //Builder-Interface
 class PaketBuilder {
-    addKomponente(kompId) { throw new Error("Muss implementiert werden"); }
+    addKomponente(_kompId) { throw new Error("Muss implementiert werden"); }
     build() { throw new Error("Muss implementiert werden"); }
 }
 

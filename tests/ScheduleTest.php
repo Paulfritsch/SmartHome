@@ -38,6 +38,7 @@ final class ScheduleTest extends TestCase
         }
     }
 
+    /** @return array<string, list<mixed>> Testfälle: Name => Argumente */
     public static function savingReasons(): array
     {
         return [
@@ -68,6 +69,7 @@ final class ScheduleTest extends TestCase
         $this->assertAllRejected(self::invalidTimes(), fn (string $off, ?string $on) => new Schedule($off, $on));
     }
 
+    /** @return array<string, list<mixed>> Testfälle: Name => Argumente */
     public static function invalidTimes(): array
     {
         return [

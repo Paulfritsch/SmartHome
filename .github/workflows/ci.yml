@@ -30,15 +30,46 @@ jobs:
         run: composer validate --strict
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        run: |
+          composer install --prefer-dist --no-progress
+          npm ci --no-audit --no-fund
 
       - name: PHP syntax check
-        run: find prototype/src tests -name "*.php" -print0 | xargs -0 -n1 php -l
+        run: find prototype/src prototype/public prototype/bin tests -name "*.php" -print0 | xargs -0 -n1 php -l
 
+      # ---- Statische Analyse (Einstellungen: phpstan.neon, phpcs.xml, eslint.config.mjs) ----
+      - name: "Statische Analyse: PHPStan (Typen und Fehler, Stufe 6)"
+        run: |
+          mkdir -p build
+          set -o pipefail
+          vendor/bin/phpstan analyse --no-progress --memory-limit=1G | tee build/phpstan.txt
+
+      - name: "Statische Analyse: PHP_CodeSniffer (Code-Stil PSR-12)"
+        run: |
+          mkdir -p build
+          set -o pipefail
+          vendor/bin/phpcs --no-colors --report=summary | tee build/phpcs.txt
+
+      - name: "Statische Analyse: ESLint (JavaScript der Website)"
+        run: |
+          mkdir -p build
+          set -o pipefail
+          npx eslint smarthome/js tests/js | tee build/eslint.txt
+          echo "ESLint: keine Fehler" >> build/eslint.txt
+
+      # ---- Tests ----
       - name: Run unit tests
         run: |
           mkdir -p build
-          vendor/bin/phpunit --coverage-text --testdox-text build/php-tests.txt --log-junit build/phpunit-junit.xml
+          vendor/bin/phpunit --testsuite Unit --testdox-text build/php-unit.txt
+
+      - name: Run integration tests (SQLite)
+        run: vendor/bin/phpunit --testsuite Integration --testdox-text build/php-integration.txt
+
+      - name: Code coverage (alle PHP-Tests)
+        run: |
+          set -o pipefail
+          vendor/bin/phpunit --no-progress --coverage-text --log-junit build/phpunit-junit.xml | tee build/coverage.txt
 
       - name: Test website prototype
         run: |
@@ -46,22 +77,32 @@ jobs:
           set -o pipefail
           node --test --test-reporter=spec tests/js/builder.test.js tests/js/html.test.js | tee build/js-tests.txt
 
-      # Alle Tests mit Namen direkt auf der Seite des Durchlaufs (Reiter "Summary")
-      - name: Show test results in the summary
+      # Ergebnisse direkt auf der Seite des Durchlaufs (Reiter "Summary")
+      - name: Show results in the summary
         if: always()
         run: |
+          show() {
+            echo "## $1"
+            echo '```'
+            cat "$2" 2>/dev/null || echo "Keine Ergebnisse"
+            echo '```'
+          }
           {
-            echo "## PHP-Tests (PHPUnit)"
+            echo "# Statische Analyse"
+            show "PHPStan (Stufe 6)" build/phpstan.txt
+            show "PHP_CodeSniffer (PSR-12, Warnungen brechen nicht ab)" build/phpcs.txt
+            show "ESLint" build/eslint.txt
+            echo "# Tests"
+            show "PHP-Unit-Tests" build/php-unit.txt
+            show "PHP-Integrationstests (SQLite)" build/php-integration.txt
+            echo "## Code Coverage"
             echo '```'
-            cat build/php-tests.txt 2>/dev/null || echo "Keine Ergebnisse"
+            grep -A4 'Summary:' build/coverage.txt 2>/dev/null || echo "Keine Ergebnisse"
             echo '```'
-            echo "## Website-Tests (Node)"
-            echo '```'
-            cat build/js-tests.txt 2>/dev/null || echo "Keine Ergebnisse"
-            echo '```'
+            show "Website-Tests (Node)" build/js-tests.txt
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Berichte zum Herunterladen (JUnit-XML und Textliste)
+      # Berichte zum Herunterladen (JUnit-XML und Textlisten)
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4

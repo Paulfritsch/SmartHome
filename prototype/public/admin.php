@@ -2,10 +2,17 @@
 
 declare(strict_types=1);
 
+// Admin-Bereich für das Team: offene Bestellungen, Packliste, Lieferadresse und "Als geliefert markieren".
+// Nur für Konten mit Admin-Rechten (siehe prototype/bin/make-admin.php).
+
 require __DIR__ . '/_bootstrap.php';
 
 use SmartSave\Catalog;
 use SmartSave\OrderRepository;
+
+// Diese Objekte legt _bootstrap.php an (die Angaben helfen der statischen Analyse mit PHPStan):
+/** @var \SmartSave\UserRepository $users */
+/** @var \SmartSave\OrderRepository $orders */
 
 $admin = requireAdmin($users);
 

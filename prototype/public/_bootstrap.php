@@ -206,7 +206,7 @@ function pageStart(string $title, ?User $user = null): void
             </ul>
         </div>
     <?php endforeach; ?>
-<?php
+    <?php
 }
 
 function pageEnd(): void
@@ -216,5 +216,5 @@ function pageEnd(): void
 <footer class="fuss">SmartSave: Smart Home im Abo.</footer>
 </body>
 </html>
-<?php
+    <?php
 }

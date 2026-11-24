@@ -7,6 +7,10 @@ require __DIR__ . '/_bootstrap.php';
 use SmartSave\Catalog;
 use SmartSave\ValidationException;
 
+// Diese Objekte legt _bootstrap.php an (die Angaben helfen der statischen Analyse mit PHPStan):
+/** @var \SmartSave\UserRepository $users */
+/** @var \SmartSave\OrderRepository $orders */
+
 // Fuer Konten ohne Paket-Bestellung (z. B. vor der Einfuehrung der Lieferadresse angelegt)
 $user = requireCustomer($users);
 

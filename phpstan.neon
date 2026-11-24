@@ -1,0 +1,12 @@
+# Statische Analyse mit PHPStan (läuft in der Pipeline, siehe .github/workflows/ci.yml)
+# Lokal: vendor/bin/phpstan analyse
+parameters:
+    # Stufe 6 von 10: prüft u. a. Typen, unbekannte Methoden/Variablen, tote Bedingungen
+    # und verlangt Typangaben für Parameter, Rückgaben und Arrays.
+    level: 6
+    paths:
+        - prototype/src
+        - prototype/public
+        - prototype/bin
+        - prototype/router.php
+        - tests

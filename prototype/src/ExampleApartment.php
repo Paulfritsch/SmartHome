@@ -34,7 +34,7 @@ final class ExampleApartment
                     $default['watt'],
                     $default['hours'],
                     true,
-                    (self::CATEGORIES[$deviceName] ?? DeviceCategory::Other)->value
+                    self::CATEGORIES[$deviceName]->value
                 );
             }
         }

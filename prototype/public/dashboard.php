@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+// Dashboard "Meine Wohnung": Räume, Geräte, Zeitpläne, Abo-Rechnung und eigene Bestellungen.
+// Die Formulare unten schicken eine "action" per POST, die hier oben ausgewertet wird.
+// Die Rechnung selbst steckt in den Klassen Dashboard und Subscription (prototype/src).
+
 require __DIR__ . '/_bootstrap.php';
 
 use SmartSave\Catalog;
@@ -12,6 +16,13 @@ use SmartSave\ExampleApartment;
 use SmartSave\RoomRepository;
 use SmartSave\Subscription;
 use SmartSave\ValidationException;
+
+// Diese Objekte legt _bootstrap.php an (die Angaben helfen der statischen Analyse mit PHPStan):
+/** @var \SmartSave\UserRepository $users */
+/** @var \SmartSave\RoomRepository $rooms */
+/** @var \SmartSave\DeviceRepository $devices */
+/** @var \SmartSave\BookingRepository $bookings */
+/** @var \SmartSave\OrderRepository $orders */
 
 $user = requireCustomer($users);
 
@@ -294,8 +305,8 @@ pageStart('Meine Wohnung', $user);
                                     <label>Art
                                         <select name="category"><?= categoryOptions($device->getCategory()) ?></select>
                                     </label>
-                                    <label>Ausschalten um <input type="time" name="off_time" value="<?= e($schedule?->offTime ?? '') ?>"></label>
-                                    <label>Wieder einschalten um <span class="klein">(optional)</span> <input type="time" name="on_time" value="<?= e($schedule?->onTime ?? '') ?>"></label>
+                                    <label>Ausschalten um <input type="time" name="off_time" value="<?= e($schedule->offTime ?? '') ?>"></label>
+                                    <label>Wieder einschalten um <span class="klein">(optional)</span> <input type="time" name="on_time" value="<?= e($schedule->onTime ?? '') ?>"></label>
                                     <p class="klein"><?= e($device->getCategory()->savingsNote()) ?> Ohne Einschaltzeit rechnen wir mit 8 Stunden Pause.</p>
                                     <button type="submit">Speichern</button>
                                 </form>

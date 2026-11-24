@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- Code-Style-Prüfung mit PHP_CodeSniffer (läuft in der Pipeline, siehe .github/workflows/ci.yml)
+     Lokal prüfen: vendor/bin/phpcs   automatisch korrigieren: vendor/bin/phpcbf -->
+<ruleset name="SmartSave">
+    <description>PSR-12 (PHP-Standard für Code-Stil) mit zwei begründeten Ausnahmen</description>
+
+    <file>prototype/src</file>
+    <file>prototype/public</file>
+    <file>prototype/bin</file>
+    <file>prototype/router.php</file>
+    <file>tests</file>
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+    <!-- Warnungen (z. B. Zeilen über 120 Zeichen) werden angezeigt, lassen die Pipeline aber nicht scheitern -->
+    <config name="ignore_warnings_on_exit" value="1"/>
+
+    <rule ref="PSR12">
+        <!-- Zeilenenden regelt Git (unter Windows CRLF im Arbeitsordner, im Repo LF) -->
+        <exclude name="Generic.Files.LineEndings"/>
+    </rule>
+
+    <!-- Die Seiten in public/ sind HTML-Vorlagen mit der Kurzschreibweise "if (...):" und "else:".
+         Die Regel für Leerzeichen vor dem Doppelpunkt ist für reinen PHP-Code gedacht. -->
+    <rule ref="Squiz.ControlStructures.ControlSignature">
+        <exclude-pattern>prototype/public/*</exclude-pattern>
+    </rule>
+
+    <!-- Metrik: zyklomatische Komplexität je Funktion (Anzahl der Wege durch den Code).
+         Ab 10 gibt es eine Warnung, ab 20 schlägt die Pipeline fehl. Stand 24.11.: Maximum 9, Mittel 3,1 -->
+    <rule ref="Generic.Metrics.CyclomaticComplexity">
+        <properties>
+            <property name="complexity" value="10"/>
+            <property name="absoluteComplexity" value="20"/>
+        </properties>
+    </rule>
+    <!-- Metrik: Verschachtelungstiefe je Funktion (Warnung ab 5, Fehler ab 10) -->
+    <rule ref="Generic.Metrics.NestingLevel"/>
+</ruleset>

@@ -1,7 +1,11 @@
+// Konfigurator der Website: Paket zusammenstellen, Ersparnis gegen Abo-Kosten vergleichen
+// und die Auswahl für die Übersicht (warenkorb.html) in sessionStorage ablegen.
+// Das Paket baut der Builder aus builder.js, die Vorlagen Starter/Komfort der Director (PaketKonfigurator).
+
 let aktuellerBuilder = new SmartHomePaketBuilder();
 
 function formatiereEuro(betrag) {
-    return `${betrag.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+    return `${betrag.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00A0€`;
 }
 
 function gruppiere(komponenten) {
@@ -17,6 +21,7 @@ function gruppiere(komponenten) {
     return [...gruppen.values()];
 }
 
+// Liste aller Komponenten, die man hinzufügen kann
 function renderKomponenten() {
     const liste = document.getElementById("komponenten-liste");
     liste.replaceChildren();
@@ -49,6 +54,7 @@ function komponenteEntfernen(kompId) {
     renderPaket(kompId);
 }
 
+// Fertiges Paket über den Director laden ("starter" oder "komfort")
 function ladeVorlage(typ) {
     aktuellerBuilder = new SmartHomePaketBuilder();
     const konfigurator = new PaketKonfigurator(aktuellerBuilder);
@@ -63,6 +69,7 @@ function paketZuruecksetzen() {
     renderPaket();
 }
 
+// Auswahl aus sessionStorage wiederherstellen, wenn man aus der Übersicht zurückkommt ("Paket ändern")
 function ladeGespeichertesPaket() {
     try {
         const daten = JSON.parse(sessionStorage.getItem("meinPaket") || "[]");
@@ -78,7 +85,7 @@ function ladeGespeichertesPaket() {
         if (Number.isFinite(energiekosten) && energiekosten > 0) {
             document.getElementById("energiekosten").value = String(energiekosten);
         }
-    } catch (fehler) {
+    } catch {
         aktuellerBuilder = new SmartHomePaketBuilder();
     }
 }
@@ -88,6 +95,7 @@ function energiekostenAusEingabe() {
     return Number.isFinite(energiekosten) && energiekosten > 0 ? energiekosten : null;
 }
 
+// Abo-Kosten, Ersparnis und Differenz neu berechnen und anzeigen
 function aktualisiereBerechnung() {
     const paket = aktuellerBuilder.build();
     const energiekosten = energiekostenAusEingabe();
@@ -167,6 +175,7 @@ function renderPaket(geaendertId = null) {
     aktualisiereBerechnung();
 }
 
+// Auswahl speichern und zur Übersicht wechseln (nur mit gültigen Energiekosten)
 function weiterZumWarenkorb() {
     const energiekosten = energiekostenAusEingabe();
     if (energiekosten === null) {
@@ -198,6 +207,7 @@ document.querySelectorAll("[data-vorlage]").forEach(knopf => {
 
 renderKomponenten();
 
+// Start: ?paket=starter|komfort lädt eine Vorlage, ?bearbeiten=1 die gespeicherte Auswahl
 const parameter = new URLSearchParams(window.location.search);
 const vorlage = parameter.get("paket");
 if (vorlage === "starter" || vorlage === "komfort") {

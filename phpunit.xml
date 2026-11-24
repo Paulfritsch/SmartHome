@@ -4,8 +4,23 @@
          bootstrap="vendor/autoload.php"
          colors="true">
     <testsuites>
-        <testsuite name="SmartSave">
-            <directory>tests</directory>
+        <!-- Unit-Tests: einzelne Klassen ohne Datenbank -->
+        <testsuite name="Unit">
+            <file>tests/DashboardTest.php</file>
+            <file>tests/DeviceTest.php</file>
+            <file>tests/EnergyMonitorTest.php</file>
+            <file>tests/SavingsCalculatorTest.php</file>
+            <file>tests/ScheduleTest.php</file>
+            <file>tests/SubscriptionTest.php</file>
+        </testsuite>
+        <!-- Integrationstests: Repositories zusammen mit einer echten SQLite-Datenbank (im Arbeitsspeicher) -->
+        <testsuite name="Integration">
+            <file>tests/BookingRepositoryTest.php</file>
+            <file>tests/DeviceRepositoryTest.php</file>
+            <file>tests/DeviceScheduleTest.php</file>
+            <file>tests/OrderRepositoryTest.php</file>
+            <file>tests/RoomRepositoryTest.php</file>
+            <file>tests/UserRepositoryTest.php</file>
         </testsuite>
     </testsuites>
 

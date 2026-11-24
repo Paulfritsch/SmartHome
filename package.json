@@ -1,0 +1,14 @@
+{
+  "name": "smartsave-website",
+  "private": true,
+  "description": "SmartSave: Werkzeuge für Tests und statische Analyse der Website (smarthome/)",
+  "scripts": {
+    "test": "node --test tests/js/builder.test.js tests/js/html.test.js",
+    "lint": "eslint smarthome/js tests/js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0"
+  }
+}

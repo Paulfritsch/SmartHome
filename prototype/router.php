@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Router fuer den eingebauten PHP-Server: Website und Prototyp laufen so unter einer Adresse.
+// Router für den eingebauten PHP-Server: Website und Prototyp laufen so unter einer Adresse.
 //
 //   php -S localhost:8000 prototype/router.php
 //
@@ -36,7 +36,7 @@ foreach ($roots as $root) {
         continue;
     }
     $file = realpath($root . $path);
-    // realpath loest ".." auf; liegt das Ergebnis ausserhalb des Ordners, wird nichts ausgeliefert
+    // realpath löst ".." auf; liegt das Ergebnis außerhalb des Ordners, wird nichts ausgeliefert
     if ($file === false || !is_file($file) || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)) {
         continue;
     }

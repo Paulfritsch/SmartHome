@@ -175,5 +175,4 @@ final class SubscriptionTest extends TestCase
             'mehr als gedeckt' => [12.0, 200],
         ];
     }
-
 }

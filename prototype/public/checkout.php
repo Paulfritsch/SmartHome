@@ -2,11 +2,19 @@
 
 declare(strict_types=1);
 
+// Kasse für Zusatztechnik: Anzahl, Lieferadresse und Monatspreis für die Restlaufzeit.
+// Bezahlt wird bei der Lieferung, die Bestellung bleibt "offen", bis das Team sie als geliefert markiert.
+
 require __DIR__ . '/_bootstrap.php';
 
 use SmartSave\Catalog;
 use SmartSave\OrderRepository;
 use SmartSave\ValidationException;
+
+// Diese Objekte legt _bootstrap.php an (die Angaben helfen der statischen Analyse mit PHPStan):
+/** @var \SmartSave\UserRepository $users */
+/** @var \SmartSave\BookingRepository $bookings */
+/** @var \SmartSave\OrderRepository $orders */
 
 $user = requireCustomer($users);
 
