@@ -3,12 +3,20 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
+global.KOMPONENTEN = require("../../smarthome/js/komponenten.js");
+const { SmartHomePaketBuilder, PaketKonfigurator } = require("../../smarthome/js/builder.js");
+
 const webOrdner = path.resolve(__dirname, "../../smarthome");
 const seiten = ["index.html", "konfigurator.html", "warenkorb.html"];
 
-test("Alle lokalen HTML-, CSS- und JavaScript-Verweise sind vorhanden", () => {
+const euro = zahl => zahl.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const lies = datei => fs.readFileSync(path.join(webOrdner, datei), "utf8");
+
+test("Die Seiten sind nicht leer und alle lokalen HTML-, CSS- und JavaScript-Verweise sind vorhanden", () => {
     for (const seite of seiten) {
         const datei = path.join(webOrdner, seite);
+        assert.ok(fs.statSync(datei).size > 100, `${seite} ist leer`);
+
         const inhalt = fs.readFileSync(datei, "utf8");
         const verweise = [...inhalt.matchAll(/(?:href|src)="([^"#]+\.(?:html|css|js)(?:\?[^"#]*)?)"/g)];
 
@@ -19,21 +27,7 @@ test("Alle lokalen HTML-, CSS- und JavaScript-Verweise sind vorhanden", () => {
     }
 });
 
-test("Die drei Seiten sind nicht leer", () => {
-    for (const seite of seiten) {
-        assert.ok(fs.statSync(path.join(webOrdner, seite)).size > 100, `${seite} ist leer`);
-    }
-});
-
-// ---------- Weitere Pruefungen fuer Startseite, Schrift und Datenschutz ----------
-
-global.KOMPONENTEN = require("../../smarthome/js/komponenten.js");
-const { SmartHomePaketBuilder, PaketKonfigurator } = require("../../smarthome/js/builder.js");
-
-const euro = zahl => zahl.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const lies = datei => fs.readFileSync(path.join(webOrdner, datei), "utf8");
-
-test("Die Startseite nennt alle Komponenten mit dem Preis aus dem Code", () => {
+test("Die Startseite nennt Komponenten und Paketpreise passend zum Code", () => {
     const startseite = lies("index.html");
 
     for (const komponente of KOMPONENTEN) {
@@ -44,24 +38,20 @@ test("Die Startseite nennt alle Komponenten mit dem Preis aus dem Code", () => {
             `Ersparnis von ${komponente.name} stimmt nicht`
         );
     }
-});
 
-test("Jedes Piktogramm der Komponenten ist auf Startseite und Konfigurator definiert", () => {
-    for (const seite of ["index.html", "konfigurator.html"]) {
-        const inhalt = lies(seite);
-        for (const komponente of KOMPONENTEN) {
-            assert.ok(inhalt.includes(`id="${komponente.piktogramm}"`), `${seite}: ${komponente.piktogramm} fehlt`);
-        }
-    }
-});
-
-test("Die Paketpreise auf der Startseite entsprechen den Paketen im Code", () => {
-    const startseite = lies("index.html");
     const starter = new PaketKonfigurator(new SmartHomePaketBuilder()).buildStarterPaket();
     const komfort = new PaketKonfigurator(new SmartHomePaketBuilder()).buildKomfortPaket();
-
     assert.ok(startseite.includes(`${euro(starter.monatspreis)} €`), "Starter-Preis stimmt nicht");
     assert.ok(startseite.includes(`${euro(komfort.monatspreis)} €`), "Komfort-Preis stimmt nicht");
+});
+
+test("Jede Komponente hat ein Piktogramm, das auf Startseite und Konfigurator definiert ist", () => {
+    for (const komponente of KOMPONENTEN) {
+        assert.match(komponente.piktogramm, /^ico-/, `${komponente.id}: Piktogramm fehlt`);
+        for (const seite of ["index.html", "konfigurator.html"]) {
+            assert.ok(lies(seite).includes(`id="${komponente.piktogramm}"`), `${seite}: ${komponente.piktogramm} fehlt`);
+        }
+    }
 });
 
 test("Jede Seite hat Sprache, Seitentitel, Viewport und Sprunglink zum Inhalt", () => {
@@ -88,17 +78,8 @@ test("Es werden keine externen Ressourcen geladen (Schrift ist lokal eingebunden
     assert.ok(fs.existsSync(path.join(webOrdner, "fonts/Archivo-OFL-Lizenz.txt")), "Lizenztext der Schrift fehlt");
 });
 
-test("Jede Komponente hat ein Piktogramm, das auf der Konfigurator-Seite definiert ist", () => {
-    const konfigurator = lies("konfigurator.html");
-    for (const komponente of KOMPONENTEN) {
-        assert.match(komponente.piktogramm, /^ico-/, `${komponente.id}: Piktogramm fehlt`);
-        assert.ok(konfigurator.includes(`id="${komponente.piktogramm}"`), `${komponente.piktogramm} ist nicht definiert`);
-    }
-});
-
 test("Startseite und Konfigurator verlinken oben auf den Login", () => {
-  for (const seite of ["index.html", "konfigurator.html"]) {
-    const html = fs.readFileSync(path.join(__dirname, "../../smarthome", seite), "utf8");
-    assert.match(html, /<a class="kopf-login" href="login\.php">Login<\/a>/, seite);
-  }
+    for (const seite of ["index.html", "konfigurator.html"]) {
+        assert.match(lies(seite), /<a class="kopf-login" href="login\.php">Login<\/a>/, seite);
+    }
 });

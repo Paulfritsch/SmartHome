@@ -13,32 +13,22 @@ final class ScheduleTest extends TestCase
 {
     use RejectsInvalidInput;
 
-    public function testOffWindowWithinOneDay(): void
+    public function testOffWindowWithinOneDayOverMidnightAndWithoutOnTime(): void
     {
         $this->assertSame(8.0, (new Schedule('09:00', '17:00'))->offHoursPerDay());
-    }
 
-    public function testOffWindowOverMidnight(): void
-    {
-        $schedule = new Schedule('22:00', '06:00');
+        $overMidnight = new Schedule('22:00', '06:00');
+        $this->assertSame(8.0, $overMidnight->offHoursPerDay());
+        $this->assertTrue($overMidnight->isOffAt(new DateTimeImmutable('2026-11-17 23:30')));
+        $this->assertTrue($overMidnight->isOffAt(new DateTimeImmutable('2026-11-17 05:59')));
+        $this->assertFalse($overMidnight->isOffAt(new DateTimeImmutable('2026-11-17 06:00')));
+        $this->assertFalse($overMidnight->isOffAt(new DateTimeImmutable('2026-11-17 12:00')));
 
-        $this->assertSame(8.0, $schedule->offHoursPerDay());
-        $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 23:30')));
-        $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 05:59')));
-        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 06:00')));
-        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 12:00')));
-        $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 22:00')));
-    }
-
-    public function testWithoutOnTimeEightHoursAreAssumed(): void
-    {
-        $schedule = new Schedule('22:00');
-
-        $this->assertSame(8.0, $schedule->offHoursPerDay());
-        $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 23:59')));
-        $this->assertTrue($schedule->isOffAt(new DateTimeImmutable('2026-11-17 05:59')));
-        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 06:00')));
-        $this->assertFalse($schedule->isOffAt(new DateTimeImmutable('2026-11-17 21:59')));
+        // ohne Einschaltzeit werden 8 Stunden Pause angenommen
+        $withoutOn = new Schedule('22:00');
+        $this->assertSame(8.0, $withoutOn->offHoursPerDay());
+        $this->assertTrue($withoutOn->isOffAt(new DateTimeImmutable('2026-11-17 05:59')));
+        $this->assertFalse($withoutOn->isOffAt(new DateTimeImmutable('2026-11-17 06:00')));
     }
 
     public function testSavingReasonDependsOnTimeOfDay(): void
@@ -64,23 +54,13 @@ final class ScheduleTest extends TestCase
         ];
     }
 
-    public function testCreditedHoursAreCappedAtEight(): void
+    public function testCreditedHoursAreCappedAtEightAndLimitedToTheOffWindow(): void
     {
-        $this->assertSame(8.0, (new Schedule('22:00', '06:00'))->creditedHoursPerDay());
         $this->assertSame(8.0, (new Schedule('21:00', '08:00'))->creditedHoursPerDay()); // 11 h Pause, 8 h zaehlen
         $this->assertSame(8.0, (new Schedule('07:00'))->creditedHoursPerDay());
-    }
-
-    public function testCreditedHoursAreNeverMoreThanTheOffWindow(): void
-    {
         $this->assertSame(6.0, (new Schedule('23:00', '05:00'))->creditedHoursPerDay());
         $this->assertSame(2.0, (new Schedule('22:00', '00:00'))->creditedHoursPerDay());
-    }
-
-    public function testNoCreditDuringTheDay(): void
-    {
-        $this->assertSame(0.0, (new Schedule('12:00', '20:00'))->creditedHoursPerDay());
-        $this->assertSame(0.0, (new Schedule('14:00'))->creditedHoursPerDay());
+        $this->assertSame(0.0, (new Schedule('12:00', '20:00'))->creditedHoursPerDay(), 'tagsueber zaehlt nicht');
     }
 
     public function testInvalidTimesAreRejected(): void

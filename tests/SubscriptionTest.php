@@ -21,12 +21,15 @@ final class SubscriptionTest extends TestCase
         $this->assertSame(143.76, $subscription->totalFees24());
         $this->assertSame(216.24, $subscription->totalEffective24());
         $this->assertSame(24, $subscription->remainingMonths());
-    }
 
-    public function testEffectiveSoFarGrowsWithElapsedMonths(): void
-    {
+        // Gespartes waechst mit den vergangenen Monaten
         $this->assertSame(54.06, (new Subscription(15.0, [], 6))->effectiveSoFar());   // 6 * 9,01
         $this->assertSame(216.24, (new Subscription(15.0, [], 24))->effectiveSoFar());
+
+        // Ersparnis unter der Grundgebuehr: effektiv negativ
+        $low = new Subscription(4.0, [], 3);
+        $this->assertSame(-1.99, $low->effectiveMonthly());
+        $this->assertSame(-5.97, $low->effectiveSoFar());
     }
 
     public function testExtrasRaiseTheFeeFromTheirStartMonth(): void
@@ -44,6 +47,11 @@ final class SubscriptionTest extends TestCase
         // 12 * 6,68 + 12 * 11,66 = 220,08
         $this->assertSame(220.08, $subscription->totalFees24());
         $this->assertSame(139.92, $subscription->totalEffective24());
+
+        // Zeitraffer zurueck auf Monat 0, obwohl die Buchung erst ab Monat 10 gilt
+        $early = new Subscription(15.0, [['startMonth' => 10, 'monthlyPrice' => 5.0]], 0);
+        $this->assertSame(5.99, $early->currentFee());
+        $this->assertSame(0.0, $early->currentExtras());
     }
 
     public function testNoFeesAfterTheTermAndEverythingBelongsToTheUser(): void
@@ -55,41 +63,19 @@ final class SubscriptionTest extends TestCase
         $this->assertSame(15.0, $subscription->effectiveMonthly());
         $this->assertSame(15.0, $subscription->monthlyAfterTerm());
         $this->assertSame(0, $subscription->remainingMonths());
-    }
 
-    public function testNegativeEffectiveWhenSavingsAreBelowTheFee(): void
-    {
-        $subscription = new Subscription(4.0, [], 3);
-
-        $this->assertSame(-1.99, $subscription->effectiveMonthly());
-        $this->assertSame(-5.97, $subscription->effectiveSoFar());
-    }
-
-    public function testMonthsElapsedIsClamped(): void
-    {
         $this->assertSame(24, (new Subscription(10.0, [], 99))->monthsElapsed());
         $this->assertSame(0, (new Subscription(10.0, [], -5))->monthsElapsed());
     }
 
-    public function testBookingBeforeItsStartMonthDoesNotCountYet(): void
-    {
-        // Zeitraffer zurueck auf Monat 0, obwohl die Buchung erst ab Monat 10 gilt
-        $subscription = new Subscription(15.0, [['startMonth' => 10, 'monthlyPrice' => 5.0]], 0);
-
-        $this->assertSame(5.99, $subscription->currentFee());
-        $this->assertSame(0.0, $subscription->currentExtras());
-    }
-
-    public function testCatalogMonthlyPriceSpreadsTotalOverRemainingMonths(): void
+    public function testCatalogPriceSpreadsOverRemainingMonthsAndBookingWindow(): void
     {
         $this->assertSame(0.5, Catalog::monthlyPrice('led', 0));          // 12 / 24
         $this->assertSame(1.0, Catalog::monthlyPrice('led', 12));         // 12 / 12
         $this->assertSame(4.0, Catalog::monthlyPrice('thermostat', 12));  // 48 / 12
         $this->assertSame(2.0, Catalog::monthlyPrice('thermostat', 0));
-    }
 
-    public function testCatalogBookingWindow(): void
-    {
+        // Buchungsfenster: mindestens 6 Monate Restlaufzeit
         $this->assertTrue(Catalog::canBook(0));
         $this->assertTrue(Catalog::canBook(18));  // 6 Monate uebrig
         $this->assertFalse(Catalog::canBook(19));
@@ -117,18 +103,20 @@ final class SubscriptionTest extends TestCase
         $this->assertSame(14.8, $subscription->monthlyAfterTerm());
     }
 
-    public function testCatalogSavingIsAPercentageOfTheEnergyCost(): void
+    public function testCatalogSavingsArePercentagesAndOnlyUsefulUnitsCount(): void
     {
         $this->assertSame(2.4, Catalog::savingForUnits('thermostat', 0, 1, 80.0));   // 3 %
         $this->assertSame(4.8, Catalog::savingForUnits('thermostat', 0, 2, 80.0));
         $this->assertSame(0.32, Catalog::savingForUnits('led', 0, 1, 80.0));         // 0,4 %
         $this->assertSame(0.0, Catalog::savingForUnits('led', 0, 1, 0.0));
         $this->assertSame(0.0, Catalog::savingForUnits('rakete', 0, 1, 80.0));
-    }
 
-    public function testOnlyTheFirstUsefulUnitsCount(): void
-    {
-        // Steckdose: maxUseful = 2
+        // Grundersparnis 3,7 % und Obergrenze 30 %
+        $this->assertSame(2.96, Catalog::baseSaving(80.0));
+        $this->assertSame(0.0, Catalog::baseSaving(-5.0));
+        $this->assertSame(24.0, Catalog::maxSavings(80.0));
+
+        // Steckdose: maxUseful = 2, nur die ersten sinnvollen Stuecke zaehlen
         $this->assertSame(0.8, Catalog::savingForUnits('steckdose', 0, 5, 80.0));
         $this->assertSame(0.4, Catalog::savingForUnits('steckdose', 1, 3, 80.0));
         $this->assertSame(0.0, Catalog::savingForUnits('steckdose', 2, 1, 80.0));
@@ -167,14 +155,6 @@ final class SubscriptionTest extends TestCase
         $this->assertSame(3.0, $subscription->currentCapReduction());
         $this->assertSame(2.01, $subscription->effectiveMonthly()); // 10 - 5,99 - 2
         $this->assertSame(240.0, $subscription->totalSavings24());
-    }
-
-    public function testBaseSavingIsAPercentageOfTheEnergyCost(): void
-    {
-        $this->assertSame(2.96, Catalog::baseSaving(80.0));   // 3,7 %
-        $this->assertSame(0.0, Catalog::baseSaving(0.0));
-        $this->assertSame(0.0, Catalog::baseSaving(-5.0));
-        $this->assertSame(24.0, Catalog::maxSavings(80.0));   // 30 %
     }
 
     public function testCoverageShowsHowMuchOfTheFeeTheSavingsPay(): void

@@ -29,46 +29,33 @@ final class BookingRepositoryTest extends TestCase
         $this->ben = $this->users->register('Ben', 'ben@example.de', 'geheim456', 0.3)->id;
     }
 
-    public function testBookingStoresThePriceOfTheBookingMonth(): void
+    public function testBookingStoresThePriceOfTheBookingMonthAndKeepsItFixed(): void
     {
         $this->bookings->book($this->anna, 'thermostat', 12);
+        $this->bookings->book($this->anna, 'led', 0);
 
         $list = $this->bookings->listForUser($this->anna);
-
-        $this->assertCount(1, $list);
+        $this->assertCount(2, $list);
         $this->assertSame('thermostat', $list[0]['product']);
         $this->assertSame(12, $list[0]['startMonth']);
         $this->assertSame(4.0, $list[0]['monthlyPrice']);
-    }
 
-    public function testPriceStaysFixedWhenTimeMovesOn(): void
-    {
-        $this->bookings->book($this->anna, 'led', 0);
+        // der Preis bleibt gleich, auch wenn die Zeit weiterlaeuft
         $this->users->setMonthsElapsed($this->anna, 20);
-
-        $this->assertSame(0.5, $this->bookings->listForUser($this->anna)[0]['monthlyPrice']);
+        $this->assertSame(0.5, $this->bookings->listForUser($this->anna)[1]['monthlyPrice']);
     }
 
-    public function testUnknownProductIsRejected(): void
+    public function testInvalidBookingsAreRejected(): void
     {
-        $this->expectException(ValidationException::class);
-        $this->bookings->book($this->anna, 'raumschiff', 0);
-    }
+        $this->assertAllRejected(
+            ['unbekanntes Produkt' => ['raumschiff', 0], 'in den letzten Monaten' => ['led', 19]],
+            fn (string $product, int $month) => $this->bookings->book($this->anna, $product, $month)
+        );
 
-    public function testNoBookingInTheLastMonths(): void
-    {
-        $this->expectException(ValidationException::class);
-        $this->bookings->book($this->anna, 'led', 19);
-    }
-
-    public function testBookingLimit(): void
-    {
         for ($i = 0; $i < Catalog::MAX_BOOKINGS_PER_USER; $i++) {
             $this->bookings->book($this->anna, 'led', 0);
         }
-
-        $this->expectException(ValidationException::class);
-        $this->bookings->book($this->anna, 'led', 0);
+        $this->assertAllRejected(['Buchungslimit' => []], fn () => $this->bookings->book($this->anna, 'led', 0));
     }
 
     public function testUsersSeeAndCancelOnlyTheirOwnBookings(): void
@@ -83,7 +70,6 @@ final class BookingRepositoryTest extends TestCase
         $this->assertSame([], $this->bookings->listForUser($this->anna));
     }
 
-
     public function testMonthsElapsedMustStayWithinTheTerm(): void
     {
         foreach ([12, 24] as $months) {
@@ -94,6 +80,7 @@ final class BookingRepositoryTest extends TestCase
         $this->assertAllRejected(self::invalidMonths(), fn (int $months) => $this->users->setMonthsElapsed($this->anna, $months));
     }
 
+    /** @return array<string, array{int}> */
     public static function invalidMonths(): array
     {
         return ['negativ' => [-1], 'ueber Laufzeit' => [25]];

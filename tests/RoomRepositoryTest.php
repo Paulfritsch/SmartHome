@@ -30,23 +30,17 @@ final class RoomRepositoryTest extends TestCase
         $this->ben = $users->register('Ben', 'ben@example.de', 'geheim456', 0.30)->id;
     }
 
-    public function testRoomsCanBeCreatedAndNamed(): void
+    public function testRoomsCanBeCreatedNamedAndRenamed(): void
     {
         $this->rooms->add($this->anna, '  Küche ', 1);
-        $this->rooms->add($this->anna, 'Wohnzimmer', 2);
+        $flur = $this->rooms->add($this->anna, 'Flur', 2);
 
         $list = $this->rooms->listForUser($this->anna);
-
-        $this->assertSame(['Küche', 'Wohnzimmer'], array_column($list, 'name'));
+        $this->assertSame(['Küche', 'Flur'], array_column($list, 'name'));
         $this->assertSame([1, 2], array_column($list, 'width'));
-    }
 
-    public function testRoomCanBeRenamed(): void
-    {
-        $id = $this->rooms->add($this->anna, 'Flur');
-
-        $this->assertTrue($this->rooms->update($this->anna, $id, 'Diele', 2));
-        $this->assertSame('Diele', $this->rooms->listForUser($this->anna)[0]['name']);
+        $this->assertTrue($this->rooms->update($this->anna, $flur, 'Diele', 2));
+        $this->assertSame(['Küche', 'Diele'], array_column($this->rooms->listForUser($this->anna), 'name'));
     }
 
     public function testUserSeesAndChangesOnlyOwnRooms(): void
@@ -65,15 +59,20 @@ final class RoomRepositoryTest extends TestCase
         $this->devices->add($this->anna, $room, 'Lampe', 40, 2);
 
         $this->assertTrue($this->rooms->delete($this->anna, $room));
-
         $this->assertSame([], $this->devices->listForUser($this->anna));
     }
 
-    public function testInvalidRoomsAreRejected(): void
+    public function testInvalidRoomsAndTooManyRoomsAreRejected(): void
     {
         $this->assertAllRejected(self::invalidRooms(), fn (string $name, int $width) => $this->rooms->add($this->anna, $name, $width));
+
+        for ($i = 0; $i < RoomRepository::MAX_ROOMS_PER_USER; $i++) {
+            $this->rooms->add($this->anna, "Raum $i");
+        }
+        $this->assertAllRejected(['Raumlimit' => []], fn () => $this->rooms->add($this->anna, 'Einer zu viel'));
     }
 
+    /** @return array<string, array{string, int}> */
     public static function invalidRooms(): array
     {
         return [
@@ -81,15 +80,5 @@ final class RoomRepositoryTest extends TestCase
             'Name zu lang' => [str_repeat('x', RoomRepository::MAX_NAME_LENGTH + 1), 1],
             'ungueltige Breite' => ['Bad', 7],
         ];
-    }
-
-    public function testRoomLimitPerUser(): void
-    {
-        for ($i = 0; $i < RoomRepository::MAX_ROOMS_PER_USER; $i++) {
-            $this->rooms->add($this->anna, "Raum $i");
-        }
-
-        $this->expectException(ValidationException::class);
-        $this->rooms->add($this->anna, 'Einer zu viel');
     }
 }

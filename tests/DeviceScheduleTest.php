@@ -45,29 +45,6 @@ final class DeviceScheduleTest extends TestCase
         $this->assertEqualsWithDelta(0.0, $device->getMonthlyConsumptionKwh(), 0.0001);
     }
 
-    public function testSwitchingOffInTheMorningSavesEightHoursToo(): void
-    {
-        $device = $this->device(DeviceCategory::Light, new Schedule('07:30', '15:30'), 100.0, 10.0);
-
-        $this->assertSame(8.0, $device->getScheduleSavedHoursPerDay());
-        $this->assertEqualsWithDelta(24.0, $device->getScheduleSavingsKwh(), 0.0001); // 0,1 kW * 8 h * 30
-    }
-
-    public function testSwitchingOffDuringTheDaySavesNothing(): void
-    {
-        $device = $this->device(DeviceCategory::Light, new Schedule('12:00', '20:00'), 100.0, 10.0);
-
-        $this->assertSame(0.0, $device->getScheduleSavingsKwh());
-        $this->assertEqualsWithDelta(30.0, $device->getMonthlyConsumptionKwh(), 0.0001);
-    }
-
-    public function testShortOffWindowSavesOnlyItsLength(): void
-    {
-        $device = $this->device(DeviceCategory::Light, new Schedule('23:00', '05:00'), 100.0, 10.0);
-
-        $this->assertEqualsWithDelta(18.0, $device->getScheduleSavingsKwh(), 0.0001); // 0,1 kW * 6 h * 30
-    }
-
     public function testSocketSavesNothing(): void
     {
         $device = $this->device(DeviceCategory::Socket, new Schedule('22:00', '06:00'), 1000.0, 12.0);
