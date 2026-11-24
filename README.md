@@ -1,34 +1,63 @@
 # SmartHome
 
-## SmartSave – Smart Living Projekt (LF10)
+## SmartSave – Smart Living Projekt (Version 2.0, LF11)
 
 Berufsschulprojekt (Anwendungsentwickler, 3. Lehrjahr): eine Smart-Home-Lösung im Abo-Modell,
 die sich durch die eingesparten Energiekosten selbst finanziert (Bezug zu SDG 12).
+
+In LF10 entstand ein Klick-Prototyp. In LF11 haben wir ihn refaktoriert und zu einer Anwendung mit
+Konten, Datenbank, Bestellungen und Admin-Bereich ausgebaut. Was sich geändert hat, steht in den
+**[Releasenotes (CHANGELOG.md)](CHANGELOG.md)**.
+
+### Schnellstart
+
+Voraussetzung: PHP 8.1+ mit `pdo_sqlite`, Composer, für Analyse und Website-Tests zusätzlich Node.js.
+
+```
+composer install
+php -S localhost:8000 prototype/router.php
+```
+
+Danach `http://localhost:8000` öffnen. Ablauf: Startseite → Konfigurator → Übersicht →
+„Konto anlegen und bestellen“ → Dashboard. Admin-Rechte: `php prototype/bin/make-admin.php <E-Mail>`.
+
+### Aufbau
+
+| Ordner | Inhalt |
+|---|---|
+| `smarthome/` | Website (HTML, CSS, JavaScript): Startseite, Konfigurator mit Builder-Pattern, Übersicht |
+| `prototype/src/` | Backend: Fachlogik und Datenzugriff (Repositories, Abo-Rechnung, Observer) |
+| `prototype/public/` | Seiten der PHP-Anwendung: Login, Registrierung, Dashboard, Kasse, Admin |
+| `prototype/router.php` | liefert Website und PHP-Anwendung unter einer Adresse aus |
+| `tests/` | PHPUnit (Unit und Integration) und Node-Tests der Website |
+| `docs/` | Dokumentation der Sprints, Refactoring, Qualitätssicherung |
 
 ### Dokumentation
 
 https://miro.com/app/board/uXjVHuycnkY=/
 
+- [CHANGELOG.md](CHANGELOG.md) – Releasenotes
+- [docs/Refactoring_LF11.md](docs/Refactoring_LF11.md) – Refactoring-Methode, Verbesserungen, Metriken, Design Patterns, Bewertung
+- [docs/Qualitaetssicherung.md](docs/Qualitaetssicherung.md) – Pipeline, statische Analyse, Testarten, Responsive-Test
 - [Projektkonzept.md](Projektkonzept.md) – Unternehmenskonzept/Entrepreneurship
 - [docs/Sprint1_Define_Understand.md](docs/Sprint1_Define_Understand.md) – Problem Tree, Persona, Empathy Map, Problem Statement
 - [docs/Sprint2_Sketch_Solution.md](docs/Sprint2_Sketch_Solution.md) – Customer Journey, Value Proposition, Business Model Canvas, Backlog
-- [docs/Sprint3_Prototype.md](docs/Sprint3_Prototype.md) – SDLC, Prototyp, Deployment-Pipeline
-- [docs/Sprint4_Features_DesignPattern.md](docs/Sprint4_Features_DesignPattern.md) – Reflexion, Design Pattern (Observer)
+- [docs/Sprint3_Prototype.md](docs/Sprint3_Prototype.md) – SDLC, Prototyp, Deployment-Pipeline (LF10)
+- [docs/Sprint4_Features_DesignPattern.md](docs/Sprint4_Features_DesignPattern.md) – Reflexion, Design Pattern (Observer) (LF10)
 
-### Prototyp
+### Qualitätssicherung
 
-Der Sprint-3-Klick-Prototyp liegt unter [smarthome/](smarthome/). Er enthält Startseite,
-Paket-Konfigurator, eine vereinfachte Ersparnisrechnung und den Warenkorb.
+Die Pipeline (`.github/workflows/ci.yml`) führt bei jedem Push statische Analyse (PHPStan, PHP_CodeSniffer, ESLint),
+Unit-, Integrations- und Website-Tests aus. Lokal:
 
 ```
-cd smarthome
-python -m http.server 8080
+vendor/bin/phpstan analyse
+vendor/bin/phpcs
+vendor/bin/phpunit
+npm install && npm run lint && npm test
 ```
 
-Danach `http://localhost:8080` öffnen. Der PHP-Prototyp unter [prototype/](prototype/) und seine
-PHPUnit-Tests bleiben als Vorarbeit für die Verbrauchsüberwachung und Sprint 4 erhalten.
-
-## PHP-Prototyp mit Login, Räumen und Geräten
+## Die Anwendung im Detail: Login, Räume, Geräte, Abo und Bestellungen
 
 Der PHP-Prototyp hat ein Konto-System mit SQLite-Datenbank (eine Datei, kein Server nötig).
 Voraussetzung: PHP 8.1+ mit `pdo_sqlite` und `composer install`.
@@ -70,7 +99,7 @@ Auf der Startseite führt „Login“ oben rechts zum Konto. Danach `http://loca
    der echte Monatspreis für die Restlaufzeit. Als Zahlungsart gibt es nur „Bezahlung vor Ort bei der Lieferung“,
    online wird nichts bezahlt. Eine Bestellung ist `offen`, bis sie geliefert oder vom Nutzer storniert wird
    (stornieren geht nur, solange sie offen ist; die Abo-Gebühr sinkt dann wieder).
-   Bei der Registrierung wählt man ein Paket (Starter 5,99 € oder Komfort 8,57 € pro Monat, nichts ist vorausgewählt)
+   Bei der Registrierung wählt man ein Paket (Starter 5,99 € oder Komfort 8,57 € pro Monat; vorausgewählt nur, wenn man über den Warenkorb der Website kommt)
    und gibt die Lieferadresse an. Daraus entstehen Bestellungen: das Basis-Set (Hub, 2× LED, Steckdose, Bewegungsmelder)
    und beim Komfort-Paket zusätzlich 2× LED, Bewegungsmelder und Temperatursensor. Für ältere Konten ohne Paket gibt es
    `basis-set.php`. Das Basis-Set lässt sich nicht stornieren.
