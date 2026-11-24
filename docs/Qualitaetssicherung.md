@@ -13,10 +13,10 @@ Scheitert ein Schritt, ist der Lauf rot und der Fehler steht im Log.
 | 3 | **Statische Analyse PHP** | **PHPStan** Stufe 6 ([`phpstan.neon`](../phpstan.neon)) | Typen, unbekannte Methoden und Variablen, Bedingungen, die immer wahr sind, fehlende Typangaben | jedem Fund |
 | 4 | **Code-Stil und Metriken PHP** | **PHP_CodeSniffer** ([`phpcs.xml`](../phpcs.xml)) | PSR-12 (Einrückung, Klammern, Leerzeichen), zyklomatische Komplexität, Verschachtelungstiefe | Fehlern; Warnungen werden nur angezeigt |
 | 5 | **Statische Analyse JavaScript** | **ESLint** ([`eslint.config.mjs`](../eslint.config.mjs)) | ungenutzte Variablen, `==` statt `===`, `var`, unsichtbare Leerzeichen | jedem Fund |
-| 6 | Unit-Tests | PHPUnit, Suite `Unit` | 65 Tests: einzelne Klassen ohne Datenbank (`Device`, `Schedule`, `Subscription` …) | fehlgeschlagenem Test |
-| 7 | Integrationstests | PHPUnit, Suite `Integration` | 71 Tests: Repositories mit echter SQLite-Datenbank im Arbeitsspeicher | fehlgeschlagenem Test |
+| 6 | Unit-Tests | PHPUnit, Suite `Unit` | 29 Tests: einzelne Klassen ohne Datenbank (`Device`, `Schedule`, `Subscription` …) | fehlgeschlagenem Test |
+| 7 | Integrationstests | PHPUnit, Suite `Integration` | 45 Tests: Repositories mit echter SQLite-Datenbank im Arbeitsspeicher | fehlgeschlagenem Test |
 | 8 | Code Coverage | PHPUnit mit Xdebug | Anteil der getesteten Zeilen in `prototype/src` | – |
-| 9 | Website-Tests | `node --test` | 19 Tests: Builder, Preise, Links, Barrierefreiheit, kein Kartenformular im Warenkorb | fehlgeschlagenem Test |
+| 9 | Website-Tests | `node --test` | 11 Tests: Builder, Preise, Links, Barrierefreiheit, kein Kartenformular im Warenkorb | fehlgeschlagenem Test |
 | 10 | Bericht | `$GITHUB_STEP_SUMMARY`, Upload | alle Ergebnisse im Reiter „Summary“, Download `test-reports` | – |
 
 ## Statische Analyse: Einstellungen und Begründung
@@ -36,7 +36,7 @@ Stufe 8 meldet heute noch 18 Funde (mögliche `null`-Werte). Das ist als offene 
 
 **PHP_CodeSniffer, PSR-12.** 47 Stil-Fehler wurden mit `phpcbf` automatisch korrigiert (Einrückung, Leerzeilen).
 Zwei begründete Ausnahmen stehen in `phpcs.xml`: Zeilenenden regelt Git, und die HTML-Vorlagen in `public/`
-nutzen die Kurzschreibweise `if (...):`. 141 Warnungen für Zeilen über 120 Zeichen bleiben sichtbar,
+nutzen die Kurzschreibweise `if (...):`. 145 Warnungen für Zeilen über 120 Zeichen bleiben sichtbar,
 brechen den Lauf aber nicht ab.
 
 **Metriken mit PHP_CodeSniffer.** Zyklomatische Komplexität (Anzahl der Wege durch eine Funktion):

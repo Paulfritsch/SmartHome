@@ -47,7 +47,9 @@ Kunde bestellt, Team liefert, Kunde sieht seine Ersparnis.
 
 - **Statische Analyse in der Pipeline:** PHPStan (Stufe 6), PHP_CodeSniffer (PSR-12 plus Komplexitäts-Metrik)
   und ESLint für die Website. Details in [docs/Qualitaetssicherung.md](docs/Qualitaetssicherung.md).
-- **Tests getrennt nach Art:** 65 Unit-Tests, 71 Integrationstests gegen SQLite, 19 Website-Tests.
+- **Tests getrennt nach Art:** 29 Unit-Tests, 45 Integrationstests gegen SQLite, 11 Website-Tests.
+- **Tests zusammengefasst:** gleiche Prüfungen in weniger, klareren Testmethoden (PHP 132 → 74, Website 18 → 10),
+  die Abdeckung bleibt bei 93,8 %.
   Code Coverage 93,8 % der Zeilen in `prototype/src`.
 - **Testbericht** mit allen Testnamen im Reiter „Summary“ des Pipeline-Laufs und als Download.
 - **Responsive-Test** bei 375, 768 und 1280 Pixel Breite dokumentiert.

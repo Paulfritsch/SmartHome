@@ -18,7 +18,7 @@ Refactoring heißt dabei: die Struktur ändern, das Verhalten gleich lassen.
 Seit LF11 hilft die **statische Analyse** beim ersten Schritt: PHPStan, PHP_CodeSniffer und ESLint melden
 Smells automatisch in der Pipeline (siehe [Qualitaetssicherung.md](Qualitaetssicherung.md)).
 
-## 2. Definierte Verbesserungen (12 definiert, 8 umgesetzt)
+## 2. Definierte Verbesserungen (13 definiert, 9 umgesetzt)
 
 | # | Smell (Fowler) | Refactoring | Wo | Stand | Messgröße vorher → nachher |
 |---|---|---|---|---|---|
@@ -30,10 +30,11 @@ Smells automatisch in der Pipeline (siehe [Qualitaetssicherung.md](Qualitaetssic
 | 6 | Mutable Data / falscher Zustand | **Replace Primitive with Object**: Verbrauch je Gerät statt einer Summe | `SavingsCalculator`, `EnergyMonitor` | umgesetzt (`f5a78b4`) | behebt die Doppelzählung (Bug), 1 Regressionstest |
 | 7 | Dead Code | **Remove Dead Code** | `tests/phpunit.xml` (doppelt), `.DS_Store` | umgesetzt (`202aba6`) | 2 überflüssige Dateien weniger |
 | 8 | fehlende Typen / unsichtbare Abhängigkeiten | **statische Analyse** einführen und Funde beheben | `ci.yml`, alle PHP- und JS-Dateien | umgesetzt (24.11.) | PHPStan Stufe 6: 49 → 0 Funde, PSR-12: 47 → 0 Fehler, ESLint: 11 → 0 Fehler |
-| 9 | Long Function / Large Class | **Extract Function** und Vorlagen aufteilen | `public/dashboard.php` | offen | 462 Zeilen in einer Datei, Ziel unter 200 |
-| 10 | Duplicated Code (PHP ↔ JS) | **Preise an einer Stelle**: Website liest die Preise aus PHP (z. B. JSON-Datei) | `Catalog.php`, `builder.js`, `komponenten.js` | offen | heute 2 Stellen für Preise, Ziel 1 |
-| 11 | mögliche `null`-Werte | PHPStan von Stufe 6 auf 8 anheben | `public/`, `src/` | offen | 18 Funde auf Stufe 8 |
-| 12 | Primitive Obsession | Bestellungen als Objekt statt als Array | `OrderRepository` | offen | heute `array<string, mixed>` an 6 Stellen |
+| 9 | Duplicated Code / zu viele ähnliche Tests | Tests zusammenfassen (**Consolidate**): gleiche Prüfungen in weniger Testmethoden | `tests/` | umgesetzt (`87baaf4`) | PHP-Testmethoden 132 → 74, Assertions 390 → 376, Zeilen-Abdeckung gleich 93,8 %; Website-Tests 18 → 10 |
+| 10 | Long Function / Large Class | **Extract Function** und Vorlagen aufteilen | `public/dashboard.php` | offen | 462 Zeilen in einer Datei, Ziel unter 200 |
+| 11 | Duplicated Code (PHP ↔ JS) | **Preise an einer Stelle**: Website liest die Preise aus PHP (z. B. JSON-Datei) | `Catalog.php`, `builder.js`, `komponenten.js` | offen | heute 2 Stellen für Preise, Ziel 1 |
+| 12 | mögliche `null`-Werte | PHPStan von Stufe 6 auf 8 anheben | `public/`, `src/` | offen | 18 Funde auf Stufe 8 |
+| 13 | Primitive Obsession | Bestellungen als Objekt statt als Array | `OrderRepository` | offen | heute `array<string, mixed>` an 6 Stellen |
 
 ## 3. Beispiele aus dem Code
 
@@ -87,13 +88,13 @@ $this->consumptionByDevice[spl_object_id($device)] = $device->getMonthlyConsumpt
 
 | Indikator | Metrik | LF10 (`8cb814d`) | LF11 (24.11.) |
 |---|---|---|---|
-| Testbarkeit | Testmethoden PHP | 22 | 132 (136 Testfälle) |
+| Testbarkeit | Testmethoden PHP | 22 | 74 (376 Assertions); vor dem Zusammenfassen 132 |
 | Testbarkeit | Zeilen-Abdeckung `prototype/src` | nicht gemessen | 93,8 % |
 | Verständlichkeit | zyklomatische Komplexität je Funktion (PHP_CodeSniffer) | nicht gemessen | Mittel 3,1, Maximum 9, keine über 10 |
 | Fehlerfreiheit laut Analyse | Funde PHPStan Stufe 6 | nicht gemessen | 0 (vorher 49) |
-| Einheitlicher Stil | Fehler PSR-12 | nicht gemessen | 0 (vorher 47), 141 Warnungen für Zeilen über 120 Zeichen |
+| Einheitlicher Stil | Fehler PSR-12 | nicht gemessen | 0 (vorher 47), 145 Warnungen für Zeilen über 120 Zeichen |
 | Struktur | Klassen in `prototype/src` | 5 | 19 |
-| Größe | längste Datei | `index.php` 140 Zeilen | `dashboard.php` 462 Zeilen (Verbesserung 9) |
+| Größe | längste Datei | `index.php` 140 Zeilen | `dashboard.php` 462 Zeilen (Verbesserung 10) |
 
 Die Komplexität wird in jeder Pipeline geprüft: ab 10 gibt es eine Warnung, ab 20 schlägt der Lauf fehl.
 
